@@ -65,7 +65,7 @@
 
   <!-- OTP LOGIN -->
   <div class="card" id="otpLoginCard">
-    <h3 style="margin-top:0">OTP Login (Doctor / Hospital / Distributor / Retailer)</h3>
+    <h3 style="margin-top:0">OTP Login (Super Admin Only)</h3>
     <p class="muted">Enter phone number with country code (India: +91XXXXXXXXXX).</p>
 
     <div class="row">
@@ -226,6 +226,12 @@ const firebaseConfig = {
   measurementId: "G-GNKBDTDLW0"
 };
 
+// ✅ OTP only for Super Admin (edit numbers)
+const SUPER_ADMIN_NUMBERS = [
+  "+91XXXXXXXXXX" // e.g. "+919876543210"
+];
+
+
 /** =========================
  * PRODUCT PORTFOLIO (edit/add)
  * ========================= */
@@ -303,6 +309,8 @@ document.getElementById('sendOtpBtn').onclick = async () => {
     ensureRecaptcha();
     const phone = document.getElementById('phone').value.trim();
     if(!phone.startsWith("+")) throw new Error("Enter phone with country code. Example: +91XXXXXXXXXX");
+    // ✅ Allow OTP only for Super Admin numbers
+    if(!SUPER_ADMIN_NUMBERS.includes(phone)) throw new Error("OTP allowed only for Super Admin numbers.");
     confirmationResult = await auth.signInWithPhoneNumber(phone, recaptchaVerifier);
     msg.textContent = "OTP sent to your phone.";
   }catch(e){
@@ -319,7 +327,7 @@ document.getElementById('verifyOtpBtn').onclick = async () => {
     const result = await confirmationResult.confirm(code);
     loginMode = "OTP";
     otpPhone = result.user.phoneNumber || "";
-    showPortal({ role:"OTP_USER", name: otpPhone });
+    showPortal({ role:"SUPER_ADMIN", name: otpPhone });
   }catch(e){
     msg.textContent = "Verify error: " + (e.message || e);
   }
