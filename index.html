@@ -528,7 +528,7 @@
 /* =========================
    CONFIG
 ========================= */
-const API_URL ="https://script.google.com/macros/s/AKfycbx01zhBLjK_Nbkox8gZ5T8J894jqGFHzDHZit4O33NG52OciCoNNBvWEZpouRn9k9to/exec";
+const API_URL ="https://script.google.com/macros/s/AKfycbzkjrJqwK5U3dHqYg0TVKj_awgIuVao7RpI36TFC2CTU3ftoex0tEXv65w1gq-ze6IW/exec";
 const ORDER_EMAIL_TO = "ahanityapharmasuppliesllp@gmail.com";
 const ADMIN_EMAIL = "ahanityapharmasuppliesllp@gmail.com";
 const ADMIN_PASSWORD = "Admin@123"; // change if you want
@@ -538,16 +538,17 @@ const ADMIN_PASSWORD = "Admin@123"; // change if you want
    GOOGLE SHEETS API
 ========================= */
 async function apiGetInventory(){
-  const res = await fetch(`${API_URL}?action=listInventory`);
+  // GET usually works fine with Apps Script web apps
+  const res = await fetch(`${API_URL}?action=listInventory`, { cache: "no-store" });
   const data = await res.json();
   if(!data.ok) throw new Error(data.error || "Failed to load inventory");
   return data.inventory || [];
 }
 
 async function apiUpsertInventory(item){
+  // IMPORTANT: Do NOT set Content-Type header (avoids CORS preflight on GitHub Pages)
   const res = await fetch(API_URL, {
     method: "POST",
-    headers: {"Content-Type":"application/json"},
     body: JSON.stringify({ action:"upsertInventory", item })
   });
   const data = await res.json();
@@ -556,9 +557,9 @@ async function apiUpsertInventory(item){
 }
 
 async function apiDeleteInventory(id){
+  // IMPORTANT: Do NOT set Content-Type header (avoids CORS preflight)
   const res = await fetch(API_URL, {
     method: "POST",
-    headers: {"Content-Type":"application/json"},
     body: JSON.stringify({ action:"deleteInventory", id })
   });
   const data = await res.json();
@@ -574,9 +575,9 @@ async function apiGetOrders(limit=100){
 }
 
 async function apiPlaceOrder(order){
+  // IMPORTANT: Do NOT set Content-Type header (avoids CORS preflight)
   const res = await fetch(API_URL, {
     method: "POST",
-    headers: {"Content-Type":"application/json"},
     body: JSON.stringify({ action:"placeOrder", order })
   });
   const data = await res.json();
@@ -937,9 +938,7 @@ function buildOrderText(){
    ORDER SAVE + STOCK REDUCTION (GOOGLE SHEET)
 ========================= */
 async function finalizeOrderInSheet(){
-  // Fetch latest inventory to avoid reducing wrong stock
-  const latest = await apiGetInventory();
-
+  // SERVER-SIDE: Apps Script will validate stock, save order, and reduce stock atomically.
   const items = cartItems().map(it => ({
     id: it.id,
     name: it.name,
@@ -954,16 +953,7 @@ async function finalizeOrderInSheet(){
   const totalQty = items.reduce((a,b)=>a + b.qty, 0);
   const approxTotal = items.reduce((a,b)=>a + (b.qty * Number(b.price||0)), 0);
 
-  // Validate stock against latest
-  for(const it of items){
-    const m = latest.find(x => String(x.id) === String(it.id));
-    const stock = Number(m?.stock || 0);
-    if(it.qty > stock){
-      throw new Error(`Stock not enough for "${it.name}". Available: ${stock}, Requested: ${it.qty}`);
-    }
-  }
-
-  // 1) Save order first
+  // Save order (server will reduce stock)
   const order = {
     userType: user.type,
     name: user.name,
@@ -974,17 +964,9 @@ async function finalizeOrderInSheet(){
     approxTotal,
     remarks: (remarks.value || "").trim()
   };
+
   const saved = await apiPlaceOrder(order);
   const orderId = saved.orderId || "";
-
-  // 2) Reduce stock after saving order
-  for(const it of items){
-    const m = latest.find(x => String(x.id) === String(it.id));
-    if(!m) continue;
-    const newStock = Math.max(0, Number(m.stock||0) - Number(it.qty||0));
-    const updated = { ...m, stock: newStock };
-    await apiUpsertInventory(updated);
-  }
 
   // Save last confirmed order for sharing
   const lastOrder = {
@@ -995,18 +977,20 @@ async function finalizeOrderInSheet(){
     totalQty,
     approxTotal,
     remarks: (remarks.value || "").trim(),
-    message: (buildOrderText() || "") + `\n\nOrder ID: ${orderId}`
+    message: (buildOrderText() || "") + `
+
+Order ID: ${orderId}`
   };
   setLS(KEY_LAST_ORDER, lastOrder);
 
-  // Refresh inventory in UI
+  // Refresh inventory in UI after server stock reduction
   inventory = await apiGetInventory();
   renderAll();
 
   // Clear cart after confirmation
   clearCart();
 
-  return { orderId, items, totalQty, approxTotal, lastOrder };
+  return { orderId, items, totalQty, approxTotal };
 }
 
 async function confirmAndFinalize(){
@@ -1313,7 +1297,7 @@ btnConfirmOrder.onclick = async ()=>{
   try{
     const result = await confirmAndFinalize();
     if(!result) return;
-    alert(`Order confirmed & saved. Order ID: ${result.orderId}`);
+    alert(`Order confirmed & saved (stock reduced on server). Order ID: ${result.orderId}`);
   }catch(e){
     alert('Order confirm failed: ' + e.message + "\n\nCommon fix: Use Apps Script Web App URL ending with /exec (not /dev) and set access to Anyone.");
   }
@@ -1368,3 +1352,4 @@ window.viewOrderItems = viewOrderItems;
 
 </body>
 </html>
+
