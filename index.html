@@ -239,7 +239,7 @@
         <div class="bd">
           <div class="notice">
             <b>How to order:</b> Login → add quantities → share via WhatsApp or Email.<br/>
-            <span class="muted">Note: Stock and prices are managed by Admin (saved in this browser via localStorage).</span>
+            <span class="muted">Note: Stock and prices are managed by Admin (LIVE from Google Sheet).</span>
           </div>
 
           <div class="hr"></div>
@@ -305,8 +305,9 @@
           <div class="hr"></div>
 
           <div class="row">
+            <button class="btn primary" id="btnConfirmOrder">Confirm Order</button>
             <button class="btn ok" id="btnShareWhatsApp">Share on WhatsApp</button>
-            <button class="btn primary" id="btnSendEmail">Send Email</button>
+            <button class="btn" id="btnSendEmail">Send Email</button>
           </div>
 
           <div class="footer-note">
@@ -373,7 +374,7 @@
       <div class="bd">
         <div class="notice">
           <b>Admin controls:</b> Add / Edit / Delete medicines, set MRP/Price/Stock.
-          <div class="muted">Saved in this browser (localStorage). If you open from another device/browser, inventory will not sync.</div>
+          <div class="muted">Saved in Google Sheet (LIVE). All users will see updated inventory.</div>
         </div>
 
         <div class="hr"></div>
@@ -491,10 +492,54 @@
 /* =========================
    CONFIG
 ========================= */
-const API_URL ="https://script.google.com/macros/s/AKfycbwLu6Ek7lAwe-8GOslkLEuDZH5kyNTeYTMPNH6IMsg/dev"
+const API_URL =https://script.google.com/macros/s/AKfycbwseSKiZrFitzXEugjBXuPIZAHwU0JoKFZuk7sfMva6JwXm6gWEXxXc6ptILNWQEE2v/exec
 const ORDER_EMAIL_TO = "ahanityapharmasuppliesllp@gmail.com";
 const ADMIN_EMAIL = "ahanityapharmasuppliesllp@gmail.com";
 const ADMIN_PASSWORD = "Admin@123"; // change if you want
+
+
+/* =========================
+   GOOGLE SHEETS API
+========================= */
+async function apiGetInventory(){
+  const res = await fetch(`${API_URL}?action=listInventory`);
+  const data = await res.json();
+  if(!data.ok) throw new Error(data.error || "Failed to load inventory");
+  return data.inventory || [];
+}
+
+async function apiUpsertInventory(item){
+  const res = await fetch(API_URL, {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({ action:"upsertInventory", item })
+  });
+  const data = await res.json();
+  if(!data.ok) throw new Error(data.error || "Failed to save item");
+  return data;
+}
+
+async function apiDeleteInventory(id){
+  const res = await fetch(API_URL, {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({ action:"deleteInventory", id })
+  });
+  const data = await res.json();
+  if(!data.ok) throw new Error(data.error || "Failed to delete item");
+  return data;
+}
+
+async function apiPlaceOrder(order){
+  const res = await fetch(API_URL, {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({ action:"placeOrder", order })
+  });
+  const data = await res.json();
+  if(!data.ok) throw new Error(data.error || "Failed to place order");
+  return data;
+}
 
 /* =========================
    STORAGE KEYS
@@ -503,6 +548,7 @@ const KEY_USER = "aplsl_user_v1";
 const KEY_ADMIN = "aplsl_admin_logged_v1";
 const KEY_INV = "aplsl_inventory_v1";
 const KEY_CART = "aplsl_cart_v1";
+const KEY_LAST_ORDER = "aplsl_last_order_v1"; // stores last confirmed order for sharing
 
 /* =========================
    DEMO INVENTORY (fallback)
@@ -547,11 +593,21 @@ let adminLogged = getLS(KEY_ADMIN, false);  // bool
 let inventory = getLS(KEY_INV, null);
 let cart = getLS(KEY_CART, {});             // { [id]: qty }
 
-/* Init inventory */
-if(!Array.isArray(inventory) || inventory.length === 0){
-  inventory = DEMO;
-  setLS(KEY_INV, inventory);
+/* Init inventory from Google Sheets */
+async function boot(){
+  try{
+    inventory = await apiGetInventory();
+    renderAll();
+  }catch(e){
+    if(String(API_URL||"").trim().endsWith("/dev")){
+      alert("API_URL ends with /dev. Please use the deployed Web App /exec URL (Deploy → Manage deployments → Web app → Copy /exec).");
+    }
+    alert("Inventory load error: " + e.message);
+    inventory = DEMO;
+    renderAll();
+  }
 }
+boot();
 
 /* =========================
    DOM
@@ -831,7 +887,90 @@ function buildOrderText(){
   }
   lines.push("--------------------------------------------------");
   lines.push("Please confirm availability, dispatch timeline, and billing details.");
-  return lines.join("\n");
+    return lines.join("\n");
+}
+
+/* =========================
+   ORDER SAVE + STOCK REDUCTION (GOOGLE SHEET)
+========================= */
+async function finalizeOrderInSheet(){
+  // Fetch latest inventory to avoid reducing wrong stock
+  const latest = await apiGetInventory();
+
+  const items = cartItems().map(it => ({
+    id: it.id,
+    name: it.name,
+    salt: it.salt || "",
+    category: it.category || "",
+    pack: it.pack || "",
+    mrp: Number(it.mrp || 0),
+    price: Number(it.price || 0),
+    qty: Number(it.qty || 0)
+  }));
+
+  const totalQty = items.reduce((a,b)=>a + b.qty, 0);
+  const approxTotal = items.reduce((a,b)=>a + (b.qty * Number(b.price||0)), 0);
+
+  // Validate stock against latest
+  for(const it of items){
+    const m = latest.find(x => String(x.id) === String(it.id));
+    const stock = Number(m?.stock || 0);
+    if(it.qty > stock){
+      throw new Error(`Stock not enough for "${it.name}". Available: ${stock}, Requested: ${it.qty}`);
+    }
+  }
+
+  // 1) Save order first
+  const order = {
+    userType: user.type,
+    name: user.name,
+    phone: user.phone,
+    email: user.email,
+    items,
+    totalQty,
+    approxTotal,
+    remarks: (remarks.value || "").trim()
+  };
+  const saved = await apiPlaceOrder(order);
+  const orderId = saved.orderId || "";
+
+  // 2) Reduce stock after saving order
+  for(const it of items){
+    const m = latest.find(x => String(x.id) === String(it.id));
+    if(!m) continue;
+    const newStock = Math.max(0, Number(m.stock||0) - Number(it.qty||0));
+    const updated = { ...m, stock: newStock };
+    await apiUpsertInventory(updated);
+  }
+
+  // Save last confirmed order for sharing
+  const lastOrder = {
+    orderId,
+    savedAt: nowStamp(),
+    user: { ...user },
+    items,
+    totalQty,
+    approxTotal,
+    remarks: (remarks.value || "").trim(),
+    message: (buildOrderText() || "") + `\n\nOrder ID: ${orderId}`
+  };
+  setLS(KEY_LAST_ORDER, lastOrder);
+
+  // Refresh inventory in UI
+  inventory = await apiGetInventory();
+  renderAll();
+
+  // Clear cart after confirmation
+  clearCart();
+
+  return { orderId, items, totalQty, approxTotal, lastOrder };
+}
+
+async function confirmAndFinalize(){
+  // One-click confirmation step
+  return confirm("Confirm order? This will save order in Google Sheet and reduce stock.") 
+    ? await finalizeOrderInSheet()
+    : null;
 }
 
 /* =========================
@@ -855,18 +994,25 @@ function ensureUserReady(){
 }
 
 function shareWhatsApp(){
-  if(!ensureUserReady()) return;
-  const text = buildOrderText();
-  const url = "https://wa.me/?text=" + encodeURIComponent(text);
+  // Share ONLY the last confirmed order (does not change stock)
+  const last = getLS(KEY_LAST_ORDER, null);
+  if(!last || !last.message){
+    alert("No confirmed order found. Please click 'Confirm Order' first.");
+    return;
+  }
+  const url = "https://wa.me/?text=" + encodeURIComponent(last.message);
   window.open(url, "_blank");
 }
 
 function sendEmail(){
-  if(!ensureUserReady()) return;
-  const text = buildOrderText();
-  const subject = `Order - ${user.type} - ${user.name} - ${nowStamp()}`;
-  // mailto with body
-  const mailto = `mailto:${ORDER_EMAIL_TO}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(text)}`;
+  // Email ONLY the last confirmed order (does not change stock)
+  const last = getLS(KEY_LAST_ORDER, null);
+  if(!last || !last.message){
+    alert("No confirmed order found. Please click 'Confirm Order' first.");
+    return;
+  }
+  const subject = `Order - ${last.user?.type || ""} - ${last.user?.name || ""} - ${last.orderId || ""}`;
+  const mailto = `mailto:${ORDER_EMAIL_TO}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(last.message)}`;
   window.location.href = mailto;
 }
 
@@ -1038,6 +1184,17 @@ sortBy.onchange = renderInventory;
 btnClearCart.onclick = ()=>{
   if(Object.keys(cart).length===0){ toast("Cart already empty."); return; }
   if(confirm("Clear entire cart?")) clearCart();
+};
+
+btnConfirmOrder.onclick = async ()=>{
+  if(!ensureUserReady()) return;
+  try{
+    const result = await confirmAndFinalize();
+    if(!result) return;
+    alert(`Order confirmed & saved. Order ID: ${result.orderId}`);
+  }catch(e){
+    alert('Order confirm failed: ' + e.message + "\n\nCommon fix: Use Apps Script Web App URL ending with /exec (not /dev) and set access to Anyone.");
+  }
 };
 
 btnShareWhatsApp.onclick = shareWhatsApp;
