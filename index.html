@@ -199,6 +199,24 @@
           <input id="uPhone" type="tel" placeholder="10-digit mobile number" />
         </div>
 
+        <div style="margin-top:12px">
+          <label>Select Bucket</label>
+          <select id="uBucketSelect"></select>
+        </div>
+
+        <div class="row" style="margin-top:12px">
+          <div>
+            <label>Add Bucket</label>
+            <input id="newBucketName" type="text" placeholder="e.g., Doctor / Hospital / Distributor" />
+          </div>
+          <div>
+            <label>&nbsp;</label>
+            <div class="btns" style="margin-top:0">
+              <button class="btn-ghost" id="btnAddBucket" type="button">+ Add</button>
+              <button class="btn-danger" id="btnRemoveBucket" type="button">Remove</button>
+            </div>
+          </div>
+        </div>
 
         <div class="btns">
           <button class="btn-primary" id="btnUserLogin">Login</button>
@@ -311,50 +329,7 @@
         <p class="sub" id="formSub">Admins can add/edit medicines here.</p>
 
         <div id="formLockNote" class="alert bad">
-          Login required.
-        </div>
-
-        <div id="cartPanel" class="hidden">
-          <div class="alert ok" style="margin-top:12px">
-            Add medicines with quantity from Inventory, then share your order on WhatsApp or Email.
-          </div>
-
-          <div class="tablewrap" style="margin-top:12px">
-            <table style="min-width:520px">
-              <thead>
-                <tr>
-                  <th>Medicine</th>
-                  <th style="width:110px">Qty</th>
-                  <th style="width:120px">Price (₹)</th>
-                  <th style="width:140px">Amount (₹)</th>
-                  <th style="width:110px">Action</th>
-                </tr>
-              </thead>
-              <tbody id="cartBody"></tbody>
-            </table>
-          </div>
-
-          <div class="kpi" style="grid-template-columns:1fr 1fr; margin-top:12px">
-            <div class="box">
-              <div class="n" id="cartItems">0</div>
-              <div class="t">Items in Cart</div>
-            </div>
-            <div class="box">
-              <div class="n">₹ <span id="cartTotal">0.00</span></div>
-              <div class="t">Order Total (Price)</div>
-            </div>
-          </div>
-
-          <div class="btns" style="margin-top:12px">
-            <button class="btn-primary" id="btnShareWhatsApp" type="button">Share on WhatsApp</button>
-            <button class="btn-ghost" id="btnShareEmail" type="button">Share on Email</button>
-            <button class="btn-danger" id="btnClearCart" type="button">Clear Cart</button>
-          </div>
-
-          <div class="note">
-            Orders will be shared to <b id="orderEmailText"></b>.
-          </div>
-          <div id="cartAlert" class="alert hidden"></div>
+          Admin login required to edit inventory.
         </div>
 
         <div id="medicineForm" class="hidden">
@@ -415,8 +390,6 @@ const CONFIG = {
   appStorageKey: "ahanitya_inventory_v1",
   sessionKey: "ahanitya_session_v1",
   bucketsKey: "ahanitya_buckets_v1",
-  cartKey: "ahanitya_cart_v1",
-  orderEmail: "ahanityapharmasuppliesllp@gmail.com",
   // Change these admin credentials:
   adminEmail: "infoahanityapharmalifescellp@gmail.com",
   adminPassword: "Ahanitya@123",
@@ -481,172 +454,50 @@ function saveInventory(data){
 let inventory = loadInventory();
 
 /* =========================
-   CART (USER ORDER CART)
+   BUCKETS (USER GROUPS)
    ========================= */
-function loadCart(){
-  const raw = localStorage.getItem(CONFIG.cartKey);
-  if(!raw) return {};
+function defaultBuckets(){
+  return ["Doctor", "Hospital", "Distributor", "Retailer"];
+}
+
+function loadBuckets(){
+  const raw = localStorage.getItem(CONFIG.bucketsKey);
+  if(!raw){
+    const seed = defaultBuckets();
+    localStorage.setItem(CONFIG.bucketsKey, JSON.stringify(seed));
+    return seed;
+  }
   try{
     const data = JSON.parse(raw);
-    return (data && typeof data === "object") ? data : {};
-  }catch{
-    return {};
+    if(!Array.isArray(data) || data.length === 0) throw new Error("Invalid");
+    return data.map(x => String(x)).filter(Boolean);
+  }catch(e){
+    const seed = defaultBuckets();
+    localStorage.setItem(CONFIG.bucketsKey, JSON.stringify(seed));
+    return seed;
   }
 }
-function saveCart(cart){
-  localStorage.setItem(CONFIG.cartKey, JSON.stringify(cart || {}));
-}
-let cart = loadCart();
 
-function cartQty(id){
-  return Number(cart?.[id]?.qty || 0);
-}
-function cartAdd(id, delta){
-  if(!(isUser() || isAdmin())) return;
-
-  const item = inventory.find(x => x.id === id);
-  if(!item) return;
-
-  const current = cartQty(id);
-  const next = Math.max(0, current + Number(delta || 0));
-
-  const max = Math.max(0, Number(item.stock || 0));
-  if(next > max){
-    showAlert($("invAlert"), "Only " + max + " in stock.", "bad");
-    return;
-  }
-
-  if(next === 0){
-    delete cart[id];
-  }else{
-    cart[id] = {
-      id: item.id,
-      name: item.name,
-      pack: item.pack,
-      price: Number(item.price || 0),
-      mrp: Number(item.mrp || 0),
-      qty: next
-    };
-  }
-  saveCart(cart);
-  renderCart();
-  renderInventory();
+function saveBuckets(buckets){
+  localStorage.setItem(CONFIG.bucketsKey, JSON.stringify(buckets));
 }
 
-function cartSetQty(id, qty){
-  const q = Math.max(0, Number(qty || 0));
-  const item = inventory.find(x => x.id === id);
-  if(!item) return;
+let buckets = loadBuckets();
 
-  const max = Math.max(0, Number(item.stock || 0));
-  if(q > max){
-    showAlert($("cartAlert"), "Only " + max + " in stock for " + item.name, "bad");
-    return;
-  }
-  if(q === 0){
-    delete cart[id];
-  }else{
-    cart[id] = { ...(cart[id] || {}), id: item.id, name: item.name, pack: item.pack, price: Number(item.price||0), mrp: Number(item.mrp||0), qty: q };
-  }
-  saveCart(cart);
-  renderCart();
-  renderInventory();
+function renderBucketSelect(){
+  const sel = $("uBucketSelect");
+  if(!sel) return;
+  const current = sel.value;
+  sel.innerHTML = "";
+  buckets.forEach(b => {
+    const opt = document.createElement("option");
+    opt.value = b;
+    opt.textContent = b;
+    sel.appendChild(opt);
+  });
+  // restore selection if possible
+  if(current && buckets.includes(current)) sel.value = current;
 }
-
-window.cartAdd = cartAdd;
-
-function buildOrderText(){
-  const s = getSession();
-  const lines = [];
-  lines.push("Ahanitya Pharma Life Science LLP - Order Request");
-  lines.push("Date: " + new Date().toLocaleString());
-  if(s && s.role === "user"){
-    lines.push("");
-    lines.push("Customer Details:");
-    lines.push("Name: " + s.name);
-    lines.push("Email: " + s.email);
-    lines.push("Phone: " + s.phone);
-      }
-  lines.push("");
-  lines.push("Order Items:");
-  let total = 0;
-  let count = 0;
-
-  for(const id of Object.keys(cart)){
-    const c = cart[id];
-    const qty = Number(c.qty || 0);
-    if(qty <= 0) continue;
-    const price = Number(c.price || 0);
-    const amt = price * qty;
-    total += amt;
-    count += qty;
-    lines.push("- " + c.name + " (" + c.pack + ") | Qty: " + qty + " | Price: ₹" + currency(price) + " | Amount: ₹" + currency(amt));
-  }
-  lines.push("");
-  lines.push("Total Qty: " + count);
-  lines.push("Total Amount (Price): ₹" + currency(total));
-  lines.push("");
-  lines.push("Please confirm availability, scheme (if any), and expected dispatch timeline.");
-  return lines.join("\n");
-}
-
-function renderCart(){
-  const tbody = $("cartBody");
-  if(!tbody) return;
-
-  const ids = Object.keys(cart);
-  // Clean cart for deleted items
-  let changed = false;
-  for(const id of ids){
-    const inv = inventory.find(x => x.id === id);
-    if(!inv){ delete cart[id]; changed = true; }
-  }
-  if(changed) saveCart(cart);
-
-  const rows = Object.keys(cart)
-    .map(id => cart[id])
-    .filter(c => Number(c.qty||0) > 0);
-
-  tbody.innerHTML = "";
-  if(rows.length === 0){
-    tbody.innerHTML = `<tr><td colspan="5" class="muted">Cart is empty. Go to Inventory and click <b>+ Add</b>.</td></tr>`;
-    $("cartItems").textContent = "0";
-    $("cartTotal").textContent = "0.00";
-    return;
-  }
-
-  let totalQty = 0;
-  let totalAmt = 0;
-
-  for(const c of rows){
-    const qty = Number(c.qty || 0);
-    const price = Number(c.price || 0);
-    const amt = qty * price;
-    totalQty += qty;
-    totalAmt += amt;
-
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td><b>${escapeHtml(c.name)}</b><div class="muted">${escapeHtml(c.pack)}</div></td>
-      <td>
-        <div class="right" style="justify-content:flex-start">
-          <button class="small btn-ghost" type="button" onclick="cartAdd('${c.id}',-1)">-</button>
-          <input style="width:56px; padding:8px 8px; border-radius:10px" type="number" min="0" value="${qty}" oninput="cartSetQty('${c.id}', this.value)" />
-          <button class="small btn-primary" type="button" onclick="cartAdd('${c.id}',1)">+</button>
-        </div>
-      </td>
-      <td>₹ ${currency(price)}</td>
-      <td>₹ ${currency(amt)}</td>
-      <td><button class="small btn-danger" type="button" onclick="cartSetQty('${c.id}',0)">Remove</button></td>
-    `;
-    tbody.appendChild(tr);
-  }
-
-  $("cartItems").textContent = String(totalQty);
-  $("cartTotal").textContent = currency(totalAmt);
-}
-
-window.cartSetQty = cartSetQty;
 
 
 /* =========================
@@ -685,7 +536,7 @@ function updateSessionPill(){
   if(s.role === "admin"){
     $("sessionPill").textContent = "Admin: " + s.email;
   }else{
-    $("sessionPill").textContent = "User: " + s.name + " (" + s.phone + ");
+    $("sessionPill").textContent = "User: " + s.name + " (" + s.phone + ") • Bucket: " + (s.bucket || "");
   }
 }
 
@@ -715,26 +566,21 @@ function syncRoleUI(){
   $("btnAddNew").classList.toggle("hidden", !isAdmin());
   $("btnReset").classList.toggle("hidden", !isAdmin());
 
-  // Right-side panels
-  // - Admin: show inventory form
-  // - User: show cart panel
-  // - Logged out: show lock note
+  // Right-side form lock
+  $("formLockNote").classList.toggle("hidden", isAdmin());
   $("medicineForm").classList.toggle("hidden", !isAdmin());
-  $("cartPanel").classList.toggle("hidden", !isUser());
-  $("formLockNote").classList.toggle("hidden", (isAdmin() || isUser()));
 
   // Default view behavior
+  if(isAdmin()){
+    // Keep admin panel accessible
+  }
   if(!(isUser() || isAdmin())){
     // If logged out, return to user panel
     setActiveTab($("tabUser"));
     showPanel("user");
   }
 
-  // Keep order email label updated
-  $("orderEmailText").textContent = CONFIG.orderEmail;
-
   renderInventory();
-  renderCart();
 }
 
 /* =========================
@@ -787,26 +633,13 @@ function renderInventory(){
 
   for(const item of list){
     const canEdit = isAdmin();
-    const isU = isUser();
-    const qtyInCart = cartQty(item.id);
-
-    let actions = `<span class="muted">View only</span>`;
-    if(canEdit){
-      actions = `
+    const actions = canEdit
+      ? `
         <div class="right">
           <button class="small btn-ghost" onclick="editItem('${item.id}')">Edit</button>
           <button class="small btn-danger" onclick="deleteItem('${item.id}')">Delete</button>
-        </div>`;
-    }else if(isU){
-      const s = Number(item.stock || 0);
-      const disabled = (s <= 0) ? "disabled" : "";
-      actions = `
-        <div class="right" style="align-items:center">
-          <span class="chip" title="Quantity in cart">${qtyInCart}</span>
-          <button class="small btn-ghost" ${disabled} onclick="cartAdd('${item.id}',-1)">-</button>
-          <button class="small btn-primary" ${disabled} onclick="cartAdd('${item.id}',1)">+ Add</button>
-        </div>`;
-    }
+        </div>`
+      : `<span class="muted">View only</span>`;
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
@@ -957,13 +790,17 @@ $("btnUserLogin").addEventListener("click", () => {
   const email = ($("uEmail").value || "").trim();
   const name = ($("uName").value || "").trim();
   const phone = ($("uPhone").value || "").trim();
+  const bucket = ($("uBucketSelect")?.value || "").trim();
+
   const phoneOk = /^[0-9]{10}$/.test(phone);
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   if(!emailOk) return showAlert($("userAlert"), "Enter a valid email.", "bad");
   if(name.length < 2) return showAlert($("userAlert"), "Enter your name.", "bad");
   if(!phoneOk) return showAlert($("userAlert"), "Enter valid 10-digit phone.", "bad");
-  setSession({ role:"user", email, name, phone, ts: Date.now() });
+  if(!bucket) return showAlert($("userAlert"), "Please select a bucket.", "bad");
+
+  setSession({ role:"user", email, name, phone, bucket, ts: Date.now() });
   showAlert($("userAlert"), "User login successful.", "ok");
 });
 
@@ -974,38 +811,139 @@ $("btnUserLogout").addEventListener("click", () => {
 
 
 /* =========================
-   CART EVENTS (SHARE ORDER)
+   BUCKET EVENTS
    ========================= */
-$("btnClearCart").addEventListener("click", () => {
-  cart = {};
-  saveCart(cart);
-  renderCart();
+$("btnAddBucket").addEventListener("click", () => {
+  const name = ($("newBucketName").value || "").trim();
+  if(name.length < 2) return showAlert($("userAlert"), "Enter bucket name.", "bad");
+
+  // Normalize (Title Case-ish)
+  const norm = name.replace(/\s+/g, " ").trim();
+  const exists = buckets.some(b => b.toLowerCase() === norm.toLowerCase());
+  if(exists) return showAlert($("userAlert"), "Bucket already exists.", "bad");
+
+  buckets.push(norm);
+  buckets = buckets.filter(Boolean);
+  saveBuckets(buckets);
+  renderBucketSelect();
+  $("uBucketSelect").value = norm;
+  $("newBucketName").value = "";
+  showAlert($("userAlert"), "Bucket added.", "ok");
+});
+
+$("btnRemoveBucket").addEventListener("click", () => {
+  const sel = $("uBucketSelect");
+  const value = (sel?.value || "").trim();
+  if(!value) return showAlert($("userAlert"), "Select a bucket to remove.", "bad");
+
+  // Prevent removing if it is the last bucket
+  if(buckets.length <= 1) return showAlert($("userAlert"), "At least 1 bucket must remain.", "bad");
+
+  const ok = confirm("Remove bucket?\n\n" + value);
+  if(!ok) return;
+
+  buckets = buckets.filter(b => b !== value);
+  saveBuckets(buckets);
+  renderBucketSelect();
+  showAlert($("userAlert"), "Bucket removed.", "ok");
+});
+
+
+$("btnGoInventoryFromUser").addEventListener("click", () => {
+  if(!(isUser() || isAdmin())) return showAlert($("userAlert"), "Please login first.", "bad");
+  setActiveTab($("tabInventory"));
+  showPanel("inventory");
   renderInventory();
-  showAlert($("cartAlert"), "Cart cleared.", "ok");
 });
 
-$("btnShareWhatsApp").addEventListener("click", () => {
-  if(Object.keys(cart).length === 0) return showAlert($("cartAlert"), "Cart is empty.", "bad");
-  const text = buildOrderText() + "\n\nSend to: " + CONFIG.orderEmail;
-  const url = "https://wa.me/?text=" + encodeURIComponent(text);
-  window.open(url, "_blank");
+$("btnAdminLogin").addEventListener("click", () => {
+  const email = ($("aEmail").value || "").trim();
+  const pass = ($("aPass").value || "").trim();
+
+  if(email === CONFIG.adminEmail && pass === CONFIG.adminPassword){
+    setSession({ role:"admin", email, ts: Date.now() });
+    showAlert($("adminAlert"), "Admin login successful.", "ok");
+  }else{
+    showAlert($("adminAlert"), "Invalid admin credentials.", "bad");
+  }
 });
 
-$("btnShareEmail").addEventListener("click", () => {
-  if(Object.keys(cart).length === 0) return showAlert($("cartAlert"), "Cart is empty.", "bad");
-  const subject = "Medicine Order Request - Ahanitya";
-  const body = buildOrderText();
-  const mailto = "mailto:" + encodeURIComponent(CONFIG.orderEmail) +
-    "?subject=" + encodeURIComponent(subject) +
-    "&body=" + encodeURIComponent(body);
-  window.location.href = mailto;
+$("btnAdminLogout").addEventListener("click", () => {
+  clearSession();
+  showAlert($("adminAlert"), "Logged out.", "ok");
 });
+
+$("btnGoInventoryFromAdmin").addEventListener("click", () => {
+  if(!isAdmin()) return showAlert($("adminAlert"), "Admin login required.", "bad");
+  setActiveTab($("tabInventory"));
+  showPanel("inventory");
+  renderInventory();
+});
+
+$("btnAddNew").addEventListener("click", addNew);
+
+$("btnSave").addEventListener("click", () => {
+  if(!isAdmin()) return;
+
+  const id = ($("mId").value || "").trim();
+  const name = ($("mName").value || "").trim();
+  const pack = ($("mPack").value || "").trim();
+  const mrp = Number(($("mMrp").value || "").trim());
+  const price = Number(($("mPrice").value || "").trim());
+  const stock = Number(($("mStock").value || "").trim());
+
+  if(name.length < 2) return showAlert($("formAlert"), "Enter medicine name.", "bad");
+  if(pack.length < 1) return showAlert($("formAlert"), "Enter pack/strength.", "bad");
+  if(isNaN(mrp) || mrp < 0) return showAlert($("formAlert"), "Enter valid MRP.", "bad");
+  if(isNaN(price) || price < 0) return showAlert($("formAlert"), "Enter valid Price.", "bad");
+  if(isNaN(stock) || stock < 0) return showAlert($("formAlert"), "Enter valid Stock.", "bad");
+
+  if(id){
+    // update
+    const idx = inventory.findIndex(x => x.id === id);
+    if(idx >= 0){
+      inventory[idx] = { ...inventory[idx], name, pack, mrp, price, stock };
+      saveInventory(inventory);
+      renderInventory();
+      showAlert($("formAlert"), "Updated successfully.", "ok");
+      showAlert($("invAlert"), "Inventory updated.", "ok");
+    }
+  }else{
+    // add
+    const item = { id: uid(), name, pack, mrp, price, stock };
+    inventory.unshift(item);
+    saveInventory(inventory);
+    renderInventory();
+    showAlert($("formAlert"), "Added successfully.", "ok");
+    showAlert($("invAlert"), "New medicine added.", "ok");
+  }
+});
+
+$("btnClear").addEventListener("click", () => clearForm());
+
+$("btnExport").addEventListener("click", exportJSON);
+$("btnImport").addEventListener("click", importJSON);
+
+$("btnReset").addEventListener("click", () => {
+  if(!isAdmin()) return;
+  const ok = confirm("Reset inventory to demo data?");
+  if(!ok) return;
+  inventory = demoData();
+  saveInventory(inventory);
+  renderInventory();
+  clearForm();
+  showAlert($("invAlert"), "Reset done.", "ok");
+});
+
+$("searchBox").addEventListener("input", renderInventory);
+$("stockFilter").addEventListener("change", renderInventory);
 
 /* =========================
    INIT
    ========================= */
 $("yr").textContent = new Date().getFullYear();
 updateSessionPill();
+renderBucketSelect();
 syncRoleUI();
 clearForm();
 </script>
