@@ -219,11 +219,11 @@
         <div class="row">
           <div>
             <label>Admin ID (Email)</label>
-            <input id="aEmail" type="email" placeholder="ahanityapharmasuppliesllp@gmail.com" />
+            <input id="aEmail" type="email" placeholder="admin@example.com" />
           </div>
           <div>
             <label>Password</label>
-            <input id="aPass" type="password" placeholder="Aryainst@123" />
+            <input id="aPass" type="password" placeholder="••••••••" />
           </div>
         </div>
 
@@ -504,7 +504,11 @@ function syncRoleUI(){
   $("medicineForm").classList.toggle("hidden", !isAdmin());
 
   // Default view behavior
+  if(isAdmin()){
+    // Keep admin panel accessible
+  }
   if(!(isUser() || isAdmin())){
+    // If logged out, return to user panel
     setActiveTab($("tabUser"));
     showPanel("user");
   }
