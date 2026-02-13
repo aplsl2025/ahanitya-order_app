@@ -352,8 +352,258 @@ body:not([data-theme="dark"]) td{
   <!-- EmailJS -->
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
-  <!-- Firebase (Auth) -->
-  <script type="module">
+  
+</head>
+
+<body>
+  <div class="wrap">
+
+    <!-- Logo Display Card -->
+<div class="card logo-card" style="margin-bottom:14px; text-align:center; padding:15px;">
+
+  <div style="display:flex; justify-content:center; align-items:flex-start; gap:25px; flex-wrap:nowrap;">
+
+    <!-- Ahanitya Logo -->
+    <div style="display:flex; flex-direction:column; align-items:center; justify-content:flex-start;">
+      <img src="images/without BG.png"
+           alt="Ahanitya Pharma Life Science LLP"
+           style="height:100px;">
+      <p style="margin:8px 0 0 0; font-weight:600; color:#11799A; white-space:nowrap;">
+        Ahanitya Pharma Life Science LLP
+      </p>
+    </div>
+
+    <!-- Divider Line -->
+    <div style="width:1px; height:60px; background:#ccc;"></div>
+
+    <!-- Associate Sales Channel Partner Logo -->
+    <div style="display:flex; flex-direction:column; align-items:center; justify-content:flex-start;">
+      <img src="images/SBT.png"
+           alt="Associate Sales Channel Partner"
+           style="height:100px;">
+      <p style="margin:8px 0 0 0; font-weight:600; color:#444; white-space:nowrap;">
+        In association with Sales Channel Partner
+      </p>
+    </div>
+
+  </div>
+</div>
+
+
+    <div class="card" style="margin-bottom:14px">
+      <h1>Ahanitya Pharma Order Portal</h1>
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <div class="muted">
+          Status: <span class="pill" id="who">Not logged in</span>
+        </div>
+        <button class="btn btn-ghost btn-toggle" id="btnTheme" type="button">Dark Mode</button>
+        <button class="btn btn-ghost" id="btnLogout">Logout</button>
+      </div>
+    </div>
+
+    <!-- AUTH -->
+    <div class="card" id="authCard">
+      <h2>Login / Create Account</h2>
+      <div class="grid grid-2">
+        <div>
+          <label>Email</label>
+          <input id="loginEmail" type="email" placeholder="yourname@email.com" />
+        </div>
+        <div>
+          <label>Password</label>
+          <input id="loginPass" type="password" placeholder="Min 6 characters" />
+        </div>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn btn-primary" id="btnLogin">Login</button>
+        <button class="btn btn-ghost" id="btnAdminLogin" type="button">Admin Login</button>
+        <button class="btn btn-ghost" id="btnSignup">Create Account</button>
+      </div>
+      <div class="status" id="authStatus"></div>
+
+      <div class="note" style="margin-top:12px">
+      <!--  You must add Firebase config + EmailJS keys inside the code. -->
+      </div>
+    </div>
+
+    <!-- ORDER -->
+    <div class="card hide" id="orderCard">
+      <h2>Order Details</h2>
+
+      <div class="grid grid-2">
+        <div>
+          <label>Name</label>
+          <input id="custName" type="text" placeholder="Full Name" />
+        </div>
+        <div>
+          <label>Contact No</label>
+          <input id="custPhone" type="tel" placeholder="+91 XXXXX XXXXX" />
+        </div>
+        <div>
+          <label>Mail ID</label>
+          <input id="custEmail" type="email" placeholder="Customer email" />
+        </div>
+        <div>
+          <label>Business Type</label>
+          <select id="custBusiness">
+            <option value="" selected disabled>Select business type</option>
+            <option>Doctor</option>
+            <option>Wholeseller</option>
+            <option>Distributor</option>
+            <option>Stockist</option>
+            <option>Retailer</option>
+            <option>W/R</option>
+          </select>
+        </div>
+
+        <div>
+          <label>State</label>
+          <select id="custState">
+            <option value="" selected disabled>Select state</option>
+            <option>Gujarat</option>
+            <option>Rajasthan</option>
+            <option>Madhya Pradesh</option>
+            <option>Maharashtra</option>
+            <option>Uttar Pradesh</option>
+            <option>Delhi</option>
+            <option>Other</option>
+          </select>
+          <div class="muted" style="margin-top:6px">Pricing/discount will auto-adjust based on State + Business Type.</div>
+        </div>
+        <div>
+          <label>Referred By</label>
+          <select id="referredFlag">
+            <option value="No" selected>No</option>
+            <option value="Yes">Yes</option>
+          </select>
+        </div>
+        <div id="referrerFields" style="display:none;">
+          <label>Referrer Name</label>
+          <input id="referrerName" type="text" placeholder="Referrer full name" />
+        </div>
+        <div id="referrerFields2" style="display:none;">
+          <label>Referrer Designation</label>
+          <input id="referrerDesignation" type="text" placeholder="Doctor / MR / Distributor etc." />
+        </div>
+
+        <div>
+          <label>Address</label>
+          <input id="custAddress" type="text" placeholder="Full delivery address" />
+        </div>
+      </div>
+
+
+      <!-- ADMIN: Pricing & Discount Control (visible only to admin emails) -->
+      <div class="card hide" id="adminPricingCard" style="margin-top:14px">
+        <h2 style="margin-bottom:10px">Admin Pricing Control</h2>
+        <div class="grid grid-2">
+          <div>
+            <label>State (Pricing Table)</label>
+            <select id="adminState">
+              <option value="GJ">Gujarat (GJ)</option>
+              <option value="RJ">Rajasthan (RJ)</option>
+              <option value="MP">Madhya Pradesh (MP)</option>
+              <option value="MH">Maharashtra (MH)</option>
+              <option value="UP">Uttar Pradesh (UP)</option>
+              <option value="DL">Delhi (DL)</option>
+              <option value="OT">Other (OT)</option>
+            </select>
+            <div class="muted" style="margin-top:6px">Edits saved here apply for ALL users.</div>
+          </div>
+          <div>
+            <label>Global Discount % (applies to all users)</label>
+            <input id="adminGlobalDiscount" type="number" min="0" max="100" step="0.01" value="10">
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:10px">
+          <div style="flex:2">
+            <label>Choose Medicine (Brand)</label>
+            <select id="adminBrand"></select>
+          </div>
+          <div style="flex:1">
+            <label>Doctor Price</label>
+            <input id="pDoctor" type="number" step="0.01" placeholder="₹">
+          </div>
+          <div style="flex:1">
+            <label>Wholeseller Price</label>
+            <input id="pWhole" type="number" step="0.01" placeholder="₹">
+          </div>
+          <div style="flex:1">
+            <label>Retailer Price</label>
+            <input id="pRetail" type="number" step="0.01" placeholder="₹">
+          </div>
+          <div style="flex:1">
+            <label>Stockist Price</label>
+            <input id="pStock" type="number" step="0.01" placeholder="₹">
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:12px">
+          <button class="btn btn-primary" id="btnAdminSave">Save Pricing</button>
+          <button class="btn btn-ghost" id="btnAdminReload" type="button">Reload Pricing</button>
+          <span class="muted" id="adminMsg" style="flex:2"></span>
+        </div>
+
+        <div class="note" style="margin-top:12px">
+          <b>Security note:</b> UI shows this only to admin emails, but you must also set Firestore Rules to block non-admin writes.
+        </div>
+      </div>
+
+      <div id="medSection" style="margin-top:14px">
+        <h2 style="margin-bottom:10px">Select Medicines & Quantity</h2>
+
+      <div class="row" style="margin-bottom:14px">
+        <button class="btn btn-primary" id="btnSubmitTop">Submit Order (Email + WhatsApp)</button>
+        <button class="btn btn-danger" onclick="location.reload()">Reset</button>
+      </div>
+
+        <div class="medScroll">
+<table>
+          <thead>
+            <tr>
+              <th>Sr No</th>
+              <th>Brand Name</th>
+              <th>Strength</th>
+              <th class="right" id="priceHead">Price</th>
+              <th class="right">Discount %</th>
+              <th class="right">Final Price (₹)</th>
+              <th class="right">Quantity</th>
+              <th class="right">Measurement</th>
+            </tr>
+          </thead>
+          <tbody id="medBody"></tbody>
+        </table>
+        <div class="muted" style="margin-top:8px">Set quantity 0 for items not required.</div>
+</div>
+
+      
+      </div>
+
+      <div class="row" style="margin-top:14px">
+        <button class="btn btn-primary" id="btnSubmit">Submit Order (Email + WhatsApp)</button>
+        <button class="btn btn-danger" onclick="location.reload()">Reset</button>
+      </div>
+
+      <div class="status" id="orderStatus"></div>
+
+      <div class="note" style="margin-top:12px">
+        Orders will be emailed to <b>infoahanityapharmalifescellp@gmail.com</b> and also shared on WhatsApp to <b>+91 8487090212</b>.
+        <p><strong>*</strong>Orders placed on or before 18:00 hrs (6:00 PM) will be processed and delivered on the same day, subject to stock availability and serviceable location.</p>
+        <p><strong>*</strong>Orders placed after 18:00 hrs will be delivered on the next day, as early as possible. </p>
+        <p><strong>*</strong>We accept and deliver orders on Sundays and public holidays as well. Same-day delivery applies for orders placed before 18:00 hrs, subject to availability.</p>
+        <p><strong>*</strong>Bulk Order placed After 18:00 hrs will be delivered next day as early as possible. </p>
+        <p><strong>*</strong>Emergency requirements may be accommodated on a priority basis (subject to availability).</p>
+        <p><strong>*</strong>Same-day delivery is subject to product stock availability. In case of stock shortage, the customer will be informed immediately.</p>
+        <p><strong>*</strong>Order changes or cancellations must be communicated before dispatch confirmation.</p>
+        
+      </div>
+    </div>
+  </div>
+
+<script type="module">
+window.__APLSL_APP_READY=false;
+
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
     import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } 
       from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
@@ -799,6 +1049,7 @@ function getOrderItems() {
     function bootUI(){
       // Render medicines table
       renderMedicineRows();
+      bindReferrerToggle();
 
       // Top submit button triggers same action
       const btnSubmitTop = $("btnSubmitTop");
@@ -812,9 +1063,7 @@ function getOrderItems() {
       // Referrer fields show/hide (fixed)
       const referredFlag = $("referredFlag");
       const ref1 = document.getElementById("referrerFields");
-      const ref2 = document.getElementById("referrerFields2");
-      const ref3 = document.getElementById("referrerFields3"); // optional
-      if (referredFlag) {
+      const ref2 = document.getElementById("referrerFields2");      if (referredFlag) {
         referredFlag.addEventListener("change", () => {
           const showRefs = (referredFlag.value === "Yes");
           if (ref1) ref1.style.display = showRefs ? "block" : "none";
@@ -1009,254 +1258,10 @@ function getOrderItems() {
     } else {
       bootUI();
     }
+
+window.__APLSL_APP_READY=true;
+
 </script>
-</head>
-
-<body>
-  <div class="wrap">
-
-    <!-- Logo Display Card -->
-<div class="card logo-card" style="margin-bottom:14px; text-align:center; padding:15px;">
-
-  <div style="display:flex; justify-content:center; align-items:flex-start; gap:25px; flex-wrap:nowrap;">
-
-    <!-- Ahanitya Logo -->
-    <div style="display:flex; flex-direction:column; align-items:center; justify-content:flex-start;">
-      <img src="images/without BG.png"
-           alt="Ahanitya Pharma Life Science LLP"
-           style="height:100px;">
-      <p style="margin:8px 0 0 0; font-weight:600; color:#11799A; white-space:nowrap;">
-        Ahanitya Pharma Life Science LLP
-      </p>
-    </div>
-
-    <!-- Divider Line -->
-    <div style="width:1px; height:60px; background:#ccc;"></div>
-
-    <!-- Associate Sales Channel Partner Logo -->
-    <div style="display:flex; flex-direction:column; align-items:center; justify-content:flex-start;">
-      <img src="images/SBT.png"
-           alt="Associate Sales Channel Partner"
-           style="height:100px;">
-      <p style="margin:8px 0 0 0; font-weight:600; color:#444; white-space:nowrap;">
-        In association with Sales Channel Partner
-      </p>
-    </div>
-
-  </div>
-</div>
-
-
-    <div class="card" style="margin-bottom:14px">
-      <h1>Ahanitya Pharma Order Portal</h1>
-      <div class="row" style="justify-content:space-between;align-items:center">
-        <div class="muted">
-          Status: <span class="pill" id="who">Not logged in</span>
-        </div>
-        <button class="btn btn-ghost btn-toggle" id="btnTheme" type="button">Dark Mode</button>
-        <button class="btn btn-ghost" id="btnLogout">Logout</button>
-      </div>
-    </div>
-
-    <!-- AUTH -->
-    <div class="card" id="authCard">
-      <h2>Login / Create Account</h2>
-      <div class="grid grid-2">
-        <div>
-          <label>Email</label>
-          <input id="loginEmail" type="email" placeholder="yourname@email.com" />
-        </div>
-        <div>
-          <label>Password</label>
-          <input id="loginPass" type="password" placeholder="Min 6 characters" />
-        </div>
-      </div>
-      <div class="row" style="margin-top:12px">
-        <button class="btn btn-primary" id="btnLogin">Login</button>
-        <button class="btn btn-ghost" id="btnAdminLogin" type="button">Admin Login</button>
-        <button class="btn btn-ghost" id="btnSignup">Create Account</button>
-      </div>
-      <div class="status" id="authStatus"></div>
-
-      <div class="note" style="margin-top:12px">
-      <!--  You must add Firebase config + EmailJS keys inside the code. -->
-      </div>
-    </div>
-
-    <!-- ORDER -->
-    <div class="card hide" id="orderCard">
-      <h2>Order Details</h2>
-
-      <div class="grid grid-2">
-        <div>
-          <label>Name</label>
-          <input id="custName" type="text" placeholder="Full Name" />
-        </div>
-        <div>
-          <label>Contact No</label>
-          <input id="custPhone" type="tel" placeholder="+91 XXXXX XXXXX" />
-        </div>
-        <div>
-          <label>Mail ID</label>
-          <input id="custEmail" type="email" placeholder="Customer email" />
-        </div>
-        <div>
-          <label>Business Type</label>
-          <select id="custBusiness">
-            <option value="" selected disabled>Select business type</option>
-            <option>Doctor</option>
-            <option>Wholeseller</option>
-            <option>Distributor</option>
-            <option>Stockist</option>
-            <option>Retailer</option>
-            <option>W/R</option>
-          </select>
-        </div>
-
-        <div>
-          <label>State</label>
-          <select id="custState">
-            <option value="" selected disabled>Select state</option>
-            <option>Gujarat</option>
-            <option>Rajasthan</option>
-            <option>Madhya Pradesh</option>
-            <option>Maharashtra</option>
-            <option>Uttar Pradesh</option>
-            <option>Delhi</option>
-            <option>Other</option>
-          </select>
-          <div class="muted" style="margin-top:6px">Pricing/discount will auto-adjust based on State + Business Type.</div>
-        </div>
-        <div>
-          <label>Referred By</label>
-          <select id="referredFlag">
-            <option value="No" selected>No</option>
-            <option value="Yes">Yes</option>
-          </select>
-        </div>
-        <div id="referrerFields" style="display:none;">
-          <label>Referrer Name</label>
-          <input id="referrerName" type="text" placeholder="Referrer full name" />
-        </div>
-        <div id="referrerFields2" style="display:none;">
-          <label>Referrer Designation</label>
-          <input id="referrerDesignation" type="text" placeholder="Doctor / MR / Distributor etc." />
-        </div>
-
-        <div>
-          <label>Address</label>
-          <input id="custAddress" type="text" placeholder="Full delivery address" />
-        </div>
-      </div>
-
-
-      <!-- ADMIN: Pricing & Discount Control (visible only to admin emails) -->
-      <div class="card hide" id="adminPricingCard" style="margin-top:14px">
-        <h2 style="margin-bottom:10px">Admin Pricing Control</h2>
-        <div class="grid grid-2">
-          <div>
-            <label>State (Pricing Table)</label>
-            <select id="adminState">
-              <option value="GJ">Gujarat (GJ)</option>
-              <option value="RJ">Rajasthan (RJ)</option>
-              <option value="MP">Madhya Pradesh (MP)</option>
-              <option value="MH">Maharashtra (MH)</option>
-              <option value="UP">Uttar Pradesh (UP)</option>
-              <option value="DL">Delhi (DL)</option>
-              <option value="OT">Other (OT)</option>
-            </select>
-            <div class="muted" style="margin-top:6px">Edits saved here apply for ALL users.</div>
-          </div>
-          <div>
-            <label>Global Discount % (applies to all users)</label>
-            <input id="adminGlobalDiscount" type="number" min="0" max="100" step="0.01" value="10">
-          </div>
-        </div>
-
-        <div class="row" style="margin-top:10px">
-          <div style="flex:2">
-            <label>Choose Medicine (Brand)</label>
-            <select id="adminBrand"></select>
-          </div>
-          <div style="flex:1">
-            <label>Doctor Price</label>
-            <input id="pDoctor" type="number" step="0.01" placeholder="₹">
-          </div>
-          <div style="flex:1">
-            <label>Wholeseller Price</label>
-            <input id="pWhole" type="number" step="0.01" placeholder="₹">
-          </div>
-          <div style="flex:1">
-            <label>Retailer Price</label>
-            <input id="pRetail" type="number" step="0.01" placeholder="₹">
-          </div>
-          <div style="flex:1">
-            <label>Stockist Price</label>
-            <input id="pStock" type="number" step="0.01" placeholder="₹">
-          </div>
-        </div>
-
-        <div class="row" style="margin-top:12px">
-          <button class="btn btn-primary" id="btnAdminSave">Save Pricing</button>
-          <button class="btn btn-ghost" id="btnAdminReload" type="button">Reload Pricing</button>
-          <span class="muted" id="adminMsg" style="flex:2"></span>
-        </div>
-
-        <div class="note" style="margin-top:12px">
-          <b>Security note:</b> UI shows this only to admin emails, but you must also set Firestore Rules to block non-admin writes.
-        </div>
-      </div>
-
-      <div id="medSection" style="margin-top:14px">
-        <h2 style="margin-bottom:10px">Select Medicines & Quantity</h2>
-
-      <div class="row" style="margin-bottom:14px">
-        <button class="btn btn-primary" id="btnSubmitTop">Submit Order (Email + WhatsApp)</button>
-        <button class="btn btn-danger" onclick="location.reload()">Reset</button>
-      </div>
-
-        <div class="medScroll">
-<table>
-          <thead>
-            <tr>
-              <th>Sr No</th>
-              <th>Brand Name</th>
-              <th>Strength</th>
-              <th class="right" id="priceHead">Price</th>
-              <th class="right">Discount %</th>
-              <th class="right">Final Price (₹)</th>
-              <th class="right">Quantity</th>
-              <th class="right">Measurement</th>
-            </tr>
-          </thead>
-          <tbody id="medBody"></tbody>
-        </table>
-        <div class="muted" style="margin-top:8px">Set quantity 0 for items not required.</div>
-</div>
-
-      
-      </div>
-
-      <div class="row" style="margin-top:14px">
-        <button class="btn btn-primary" id="btnSubmit">Submit Order (Email + WhatsApp)</button>
-        <button class="btn btn-danger" onclick="location.reload()">Reset</button>
-      </div>
-
-      <div class="status" id="orderStatus"></div>
-
-      <div class="note" style="margin-top:12px">
-        Orders will be emailed to <b>infoahanityapharmalifescellp@gmail.com</b> and also shared on WhatsApp to <b>+91 8487090212</b>.
-        <p><strong>*</strong>Orders placed on or before 18:00 hrs (6:00 PM) will be processed and delivered on the same day, subject to stock availability and serviceable location.</p>
-        <p><strong>*</strong>Orders placed after 18:00 hrs will be delivered on the next day, as early as possible. </p>
-        <p><strong>*</strong>We accept and deliver orders on Sundays and public holidays as well. Same-day delivery applies for orders placed before 18:00 hrs, subject to availability.</p>
-        <p><strong>*</strong>Bulk Order placed After 18:00 hrs will be delivered next day as early as possible. </p>
-        <p><strong>*</strong>Emergency requirements may be accommodated on a priority basis (subject to availability).</p>
-        <p><strong>*</strong>Same-day delivery is subject to product stock availability. In case of stock shortage, the customer will be informed immediately.</p>
-        <p><strong>*</strong>Order changes or cancellations must be communicated before dispatch confirmation.</p>
-        
-      </div>
-    </div>
-  </div>
 
 <script>
 (function(){
