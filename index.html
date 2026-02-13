@@ -355,9 +355,9 @@ body:not([data-theme="dark"]) td{
   <!-- Firebase (Auth) -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } 
+    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } 
       from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
     // ✅ 1) PUT YOUR FIREBASE CONFIG HERE
     const firebaseConfig = {
@@ -376,20 +376,48 @@ import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWith
     const RECEIVER_EMAIL = "infoahanityapharmalifescellp@gmail.com";
     const WHATSAPP_NUMBER = "918487090212"; // +91 8487090212 (no +)
 
-    // ✅ Admin control (only these emails can edit prices/discounts)
-    const ADMIN_EMAILS = [
-      "infoahanityapharmalifescellp@gmail.com",
-      "ahanityapharmasuppliesllp@gmail.com"
-      // Add more admin emails here
-    ];
-
-    // Pricing config stored in Firestore (global discount, etc.)
-    let PRICING = { globalDiscountPct: 10 };
-
     // ---------- Init ----------
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+
+    // ---------- Multi-Admin ----------
+    // Add all admin emails here (lower/upper case doesn't matter)
+    const ADMIN_EMAILS = [
+      "infoahanityapharmalifescellp@gmail.com",
+      "ahanityapharmasuppliesllp@gmail.com"
+    ].map(x => String(x).toLowerCase());
+
+    function isAdminEmail(email){
+      return ADMIN_EMAILS.includes(String(email || "").toLowerCase());
+    }
+
+    // ---------- Pricing config from Firestore ----------
+    // Stored at: config/pricing_v1
+    // Structure:
+    // { globalDiscountPct: 10, pricesByState: { GJ: { "PANTO-DSR": { doctor: 140, wholeseller: 130, retailer: 120, stockist: 125 } } } }
+    let PRICING = { globalDiscountPct: 10, pricesByState: {} };
+
+    async function loadPricing(){
+      try{
+        const ref = doc(db, "config", "pricing_v1");
+        const snap = await getDoc(ref);
+        if(snap.exists()){
+          const data = snap.data() || {};
+          PRICING.globalDiscountPct = (typeof data.globalDiscountPct === "number") ? data.globalDiscountPct : 10;
+          PRICING.pricesByState = data.pricesByState || {};
+        }
+      }catch(e){
+        console.warn("Pricing load failed (ok for first run):", e);
+      }
+    }
+
+    async function savePricing(){
+      // Admin-only UI calls this; Firestore Rules MUST enforce admin write.
+      const ref = doc(db, "config", "pricing_v1");
+      await setDoc(ref, PRICING, { merge: true });
+    }
+
     emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
 
     // ---------- UI Helpers ----------
@@ -398,7 +426,7 @@ import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWith
     const hide = (el) => el.classList.add("hide");
 
     // ---------- Medicines (Edit your list) ----------
-    let MEDICINES = [
+    const MEDICINES = [
       // You can set state-wise price/discount like this:
       // pricesByState: { GJ:{doctor:140,wholeseller:130,retailer:120,stockist:125}, RJ:{doctor:145,wholeseller:135,retailer:125,stockist:130} }
       // discountsByState: { GJ:{doctor:5,wholeseller:8,retailer:10,stockist:7}, RJ:{doctor:3,wholeseller:6,retailer:8,stockist:5} }
@@ -414,141 +442,6 @@ import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWith
       { brand: "PANTO-DSR", strength: "Pantoprazole 40 mg + Domperidone 30 mg" , available: true , prices: { doctor: null, wholeseller: null, retailer: null, stockist: null }},
       { brand: "LE-MONT", strength: "Montelukast 10 mg + Levocetirizine 5 mg" , available: true , prices: { doctor: null, wholeseller: null, retailer: null, stockist: null }}
     ];
-
-    // ---------- Firestore Pricing (Admin-controlled) ----------
-    const PRICING_DOC = doc(db, "config", "pricing_v1");
-
-    async function loadPricingFromFirestore(){
-      try{
-        const snap = await getDoc(PRICING_DOC);
-        if (snap.exists()){
-          const data = snap.data() || {};
-          if (Array.isArray(data.medicines)) MEDICINES = data.medicines;
-          if (data.pricing && typeof data.pricing === "object") PRICING = { ...PRICING, ...data.pricing };
-          if (typeof data.globalDiscountPct === "number") PRICING.globalDiscountPct = Number(data.globalDiscountPct); // backward compat
-        }
-      }catch(e){
-        console.warn("Pricing load failed (using defaults):", e?.message || e);
-      }
-    }
-
-    async function savePricingToFirestore(){
-      // Only admin should call this (UI enforces; Firestore rules should enforce too)
-      await setDoc(PRICING_DOC, { medicines: MEDICINES, pricing: PRICING }, { merge: true });
-    }
-
-    function isAdminUser(email){
-      return ADMIN_EMAILS.map(x=>String(x||"").toLowerCase()).includes(String(email||"").toLowerCase());
-    }
-
-    function adminStateCode(){
-      const st = normalizeStateCode(document.getElementById("custState")?.value || "");
-      return st || "GJ";
-    }
-
-    function buildAdminPriceTable(){
-      const wrap = document.getElementById("adminTableWrap");
-      const st = adminStateCode();
-      const roleKeys = ["doctor","wholeseller","retailer","stockist"];
-
-      let html = `
-        <div class="row" style="align-items:center;margin-bottom:10px">
-          <div>
-            <div style="font-weight:800">Admin Pricing Control</div>
-            <div class="muted">Editing State: <b>${st}</b> (Prices saved state-wise. Discount is global.)</div>
-          </div>
-          <div>
-            <label style="margin:0 0 6px">Global Discount (%)</label>
-            <input id="adminGlobalDiscount" type="number" min="0" max="100" step="0.01" value="${Number(PRICING.globalDiscountPct||0)}" />
-          </div>
-          <div style="display:flex;gap:10px;align-items:flex-end">
-            <button class="btn btn-primary" id="btnSavePricing" type="button">Save</button>
-            <button class="btn btn-ghost" id="btnReloadPricing" type="button">Reload</button>
-          </div>
-        </div>
-
-        <div style="max-height:280px;overflow:auto;border-radius:12px;border:1px solid rgba(0,0,0,.08)">
-          <table>
-            <thead>
-              <tr>
-                <th style="width:50px">#</th>
-                <th>Brand</th>
-                <th style="width:140px">Doctor</th>
-                <th style="width:140px">Wholeseller</th>
-                <th style="width:140px">Retailer</th>
-                <th style="width:140px">Stockist</th>
-                <th style="width:120px">Available</th>
-              </tr>
-            </thead>
-            <tbody>
-      `;
-
-      MEDICINES.forEach((m, i) => {
-        const ps = (m.pricesByState && m.pricesByState[st]) ? m.pricesByState[st] : (m.prices || {});
-        const g = (v)=> (v===null||v===undefined||v==="") ? "" : Number(v);
-        html += `
-          <tr>
-            <td class="right">${i+1}</td>
-            <td>${escapeHtml(m.brand || "")}</td>
-            ${roleKeys.map(r => `
-              <td class="right">
-                <input type="number" step="0.01" data-a="p" data-i="${i}" data-r="${r}" value="${g(ps[r])}" style="max-width:120px">
-              </td>`).join("")}
-            <td>
-              <select data-a="avail" data-i="${i}">
-                <option value="true" ${m.available !== false ? "selected":""}>Yes</option>
-                <option value="false" ${m.available === false ? "selected":""}>No</option>
-              </select>
-            </td>
-          </tr>
-        `;
-      });
-
-      html += `</tbody></table></div>`;
-      wrap.innerHTML = html;
-
-      // Bind save/reload
-      document.getElementById("btnSavePricing").onclick = async () => {
-        // 1) collect global discount
-        const d = Number(document.getElementById("adminGlobalDiscount").value || 0);
-        PRICING.globalDiscountPct = isFinite(d) ? d : 0;
-
-        // 2) collect prices for state
-        const st = adminStateCode();
-        const priceInputs = Array.from(wrap.querySelectorAll('input[data-a="p"]'));
-        priceInputs.forEach(inp => {
-          const i = Number(inp.dataset.i);
-          const r = inp.dataset.r;
-          const val = inp.value;
-          MEDICINES[i].pricesByState = MEDICINES[i].pricesByState || {};
-          MEDICINES[i].pricesByState[st] = MEDICINES[i].pricesByState[st] || {};
-          MEDICINES[i].pricesByState[st][r] = (val === "" ? null : Number(val));
-        });
-
-        // 3) availability
-        Array.from(wrap.querySelectorAll('select[data-a="avail"]')).forEach(sel => {
-          const i = Number(sel.dataset.i);
-          MEDICINES[i].available = (sel.value === "true");
-        });
-
-        try{
-          await savePricingToFirestore();
-          // Refresh UI
-          renderMedicineRows();
-          applyRoleAndStateFromLogin();
-          alert("Saved ✅");
-        }catch(e){
-          alert("Save failed: " + (e?.message || e));
-        }
-      };
-
-      document.getElementById("btnReloadPricing").onclick = async () => {
-        await loadPricingFromFirestore();
-        renderMedicineRows();
-        applyRoleAndStateFromLogin();
-        buildAdminPriceTable();
-      };
-    }
 
     function renderMedicineRows() {
       const tbody = $("medBody");
@@ -577,7 +470,7 @@ import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWith
           <td>${escapeHtml(item.strength)}</td>
           <td class="right price-cell" data-idx="${idx}">—</td>
           <td class="right">
-            ${isNA ? `<span class="na-text">—</span>` : `<input type="number" value="0" data-idx="${idx}" class="disc" readonly style="max-width:110px;background:#f1f5f9;font-weight:700">`}
+            ${isNA ? `<span class="na-text">—</span>` : `<input type="number" min="0" max="100" step="0.01" value="0" data-idx="${idx}" class="disc" style="max-width:110px" readonly>`}
           </td>
           <td class="right final-price-cell" data-idx="${idx}">—</td>
           <td class="right">${qtyHtml}</td>
@@ -654,29 +547,32 @@ function roleKeyFromBusiness(businessVal){
 function getPriceFor(item, roleKey, stateCode){
   if(!item || !roleKey) return null;
   const st = stateCode || "";
+  const brandKey = item.brand;
+
+  // 0) Firestore pricing override (highest priority)
+  const p0 = PRICING?.pricesByState?.[st]?.[brandKey]?.[roleKey];
+  if(p0 !== null && p0 !== undefined && p0 !== "") return Number(p0);
+
+  // 1) item.pricesByState (optional)
   const byState = item?.pricesByState?.[st]?.[roleKey];
   if(byState !== null && byState !== undefined && byState !== "") return Number(byState);
+
+  // 2) item.prices fallback
   const base = item?.prices?.[roleKey];
   if(base !== null && base !== undefined && base !== "") return Number(base);
+
   return null;
 }
+
 
 // Discount lookup priority:
 // 1) item.discountsByState?.[STATE]?.[ROLE]
 // 2) item.defaultDiscounts?.[ROLE]
 // 3) 0
 function getDefaultDiscountFor(item, roleKey, stateCode){
-  // If admin has set a global discount in Firestore, use it for everyone
-  if (PRICING && typeof PRICING.globalDiscountPct === "number") return Number(PRICING.globalDiscountPct);
-
-  // Otherwise fallback to (optional) state/role discount tables if you use them
-  if(!item || !roleKey) return 0;
-  const st = stateCode || "";
-  const d1 = item?.discountsByState?.[st]?.[roleKey];
-  if(d1 !== null && d1 !== undefined && d1 !== "") return Number(d1);
-  const d2 = item?.defaultDiscounts?.[roleKey];
-  if(d2 !== null && d2 !== undefined && d2 !== "") return Number(d2);
-  return 0;
+  // Global discount from Firestore (editable by Admin)
+  const g = Number(PRICING?.globalDiscountPct);
+  return isFinite(g) ? g : 10;
 }
 
 let CURRENT_ROLE_KEY = "";
@@ -704,6 +600,7 @@ function applyPriceUI(roleKey, stateCode){
   document.querySelectorAll(".disc").forEach(inp => {
     const idx = Number(inp.getAttribute("data-idx"));
     const item = MEDICINES[idx];
+    if (inp.dataset.userEdited === "1") return; // keep user's manual override
     const defD = getDefaultDiscountFor(item, CURRENT_ROLE_KEY, CURRENT_STATE_CODE);
     inp.value = isFinite(defD) ? String(defD) : "0";
   });
@@ -728,7 +625,32 @@ function updateFinalPrices(){
     td.textContent = isFinite(finalVal) ? finalVal.toFixed(2) : "—";
   });
 }
+}
 
+
+function applyAdminUI(isAdmin){
+  const adminCard = document.getElementById("adminPricingCard");
+  if(adminCard){
+    adminCard.classList.toggle("hide", !isAdmin);
+  }
+  // Discount inputs editable only for admin
+  document.querySelectorAll(".disc").forEach(inp => {
+    if(inp.hasAttribute("readonly")) {
+      if(isAdmin) inp.removeAttribute("readonly");
+      else inp.setAttribute("readonly","readonly");
+    } else {
+      if(!isAdmin) inp.setAttribute("readonly","readonly");
+    }
+  });
+}
+
+// Live update when discount changes (mark user override)
+document.addEventListener("input", (e) => {
+  if (e.target && e.target.classList && e.target.classList.contains("disc")) {
+    e.target.dataset.userEdited = "1";
+    updateFinalPrices();
+  }
+});
 
 function applyRoleAndStateFromLogin(){
   const user = auth.currentUser;
@@ -792,6 +714,9 @@ document.addEventListener("change", (e) => {
     const email = auth.currentUser?.email || "";
     const stateCode = normalizeStateCode(e.target.value || "");
     if (stateCode) setStoredState(email, stateCode);
+
+    // reset userEdited so defaults can re-apply on state change (optional)
+    document.querySelectorAll(".disc").forEach(inp => { inp.dataset.userEdited = ""; });
 
     const roleKey = getStoredRole(email) || roleKeyFromBusiness(document.getElementById("custBusiness")?.value || "");
     applyPriceUI(roleKey, stateCode);
@@ -870,172 +795,221 @@ function getOrderItems() {
       return lines.join("\n");
     }
 
-    // ---------- Auth ----------
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        hide($("authCard"));
-        show($("orderCard"));
-        $("who").textContent = user.email;
+    // ---------- Auth + UI Boot (wait for DOM) ----------
+    function bootUI(){
+      // Render medicines table
+      renderMedicineRows();
 
-        // Show admin panel (prices/discount editable) only for admin email
-        const ap = document.getElementById("adminPanel");
-        if (ap){
-          if (isAdminUser(user.email)) { ap.classList.remove("hide"); buildAdminPriceTable(); }
-          else { ap.classList.add("hide"); }
+      // Top submit button triggers same action
+      const btnSubmitTop = $("btnSubmitTop");
+      if (btnSubmitTop) {
+        btnSubmitTop.addEventListener("click", () => {
+          const b = $("btnSubmit");
+          if (b) b.click();
+        });
+      }
+
+      // Referrer fields show/hide (fixed)
+      const referredFlag = $("referredFlag");
+      const ref1 = document.getElementById("referrerFields");
+      const ref2 = document.getElementById("referrerFields2");
+      const ref3 = document.getElementById("referrerFields3"); // optional
+      if (referredFlag) {
+        referredFlag.addEventListener("change", () => {
+          const showRefs = (referredFlag.value === "Yes");
+          if (ref1) ref1.style.display = showRefs ? "block" : "none";
+          if (ref2) ref2.style.display = showRefs ? "block" : "none";
+          if (ref3) ref3.style.display = showRefs ? "block" : "none";
+        });
+      }
+
+      // Auto-fill customer email from logged-in user (optional)
+      const custEmail = $("custEmail");
+      if (custEmail) {
+        custEmail.addEventListener("focus", () => {
+          const user = auth.currentUser;
+          if (user && !custEmail.value) custEmail.value = user.email || "";
+        });
+      }
+
+      // Auth state
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          hide($("authCard"));
+          show($("orderCard"));
+          if ($("who")) $("who").textContent = user.email;
+
+          // Load latest pricing from Firestore (shared for all users)
+          try { await loadPricing(); } catch(e){ console.warn("loadPricing failed", e); }
+
+          // Admin UI enable/disable
+          const admin = isAdminEmail(user.email);
+          applyAdminUI(admin);
+          if (admin) {
+            try { await initAdminPanel(); } catch(e){ console.warn("initAdminPanel failed", e); }
+          }
+
+          // Apply pricing column as per this login's saved category + state
+          applyRoleAndStateFromLogin();
+        } else {
+          show($("authCard"));
+          hide($("orderCard"));
+          if ($("who")) $("who").textContent = "";
+        }
+      });
+
+      // Login (normal)
+      const btnLogin = $("btnLogin");
+      if (btnLogin) btnLogin.addEventListener("click", async () => {
+        if ($("authStatus")) $("authStatus").textContent = "";
+        const email = ($("loginEmail")?.value || "").trim();
+        const pass = ($("loginPass")?.value || "").trim();
+        try {
+          await signInWithEmailAndPassword(auth, email, pass);
+          if ($("authStatus")) {
+            $("authStatus").textContent = "Logged in successfully ✅";
+            $("authStatus").className = "status ok";
+          }
+        } catch (e) {
+          if ($("authStatus")) {
+            $("authStatus").textContent = (e?.message || "Login failed");
+            $("authStatus").className = "status err";
+          }
+        }
+      });
+
+      // Admin Login (same Firebase login, but must be in admin list)
+      const btnAdminLogin = $("btnAdminLogin");
+      if (btnAdminLogin) btnAdminLogin.addEventListener("click", async () => {
+        if ($("authStatus")) $("authStatus").textContent = "";
+        const email = ($("loginEmail")?.value || "").trim().toLowerCase();
+        const pass = ($("loginPass")?.value || "").trim();
+
+        if (!isAdminEmail(email)) {
+          if ($("authStatus")) {
+            $("authStatus").textContent = "This email is not authorized for Admin access.";
+            $("authStatus").className = "status err";
+          }
+          return;
         }
 
-        // Apply pricing column as per this login's saved category
-        applyRoleAndStateFromLogin();
-      } else {
-        show($("authCard"));
-        hide($("orderCard"));
-        $("who").textContent = "";
-        const ap = document.getElementById("adminPanel");
-        if (ap) ap.classList.add("hide");
-      }
-    });
-
-    $("btnLogin").addEventListener("click", async () => {
-      $("authStatus").textContent = "";
-      const email = $("loginEmail").value.trim();
-      const pass = $("loginPass").value.trim();
-      try {
-        await signInWithEmailAndPassword(auth, email, pass);
-        $("authStatus").textContent = "Logged in successfully ✅";
-        $("authStatus").className = "status ok";
-      } catch (e) {
-        $("authStatus").textContent = (e?.message || "Login failed");
-        $("authStatus").className = "status err";
-      }
-    });
-
-    $("btnSignup").addEventListener("click", async () => {
-      $("authStatus").textContent = "";
-      const email = $("loginEmail").value.trim();
-      const pass = $("loginPass").value.trim();
-      try {
-        await createUserWithEmailAndPassword(auth, email, pass);
-        $("authStatus").textContent = "Account created & logged in ✅";
-        $("authStatus").className = "status ok";
-      } catch (e) {
-        $("authStatus").textContent = (e?.message || "Sign-up failed");
-        $("authStatus").className = "status err";
-      }
-    });
-
-    $("btnLogout").addEventListener("click", async () => {
-      await signOut(auth);
-    });
-
-    // ---------- Submit Order ----------
-    $("btnSubmit").addEventListener("click", async () => {
-      $("orderStatus").textContent = "";
-
-      // Validate
-      const items = getOrderItems();
-      if (items.length === 0) {
-        $("orderStatus").textContent = "Please select at least 1 medicine with quantity.";
-        $("orderStatus").className = "status err";
-        return;
-      }
-
-      const payload = {
-        customer_name: $("custName").value.trim(),
-        customer_address: $("custAddress").value.trim(),
-        customer_email: $("custEmail").value.trim(),
-        customer_phone: $("custPhone").value.trim(),
-        receiver_email: RECEIVER_EMAIL,
-        items,
-        business_type: $("custBusiness") ? $("custBusiness").value.trim() : "",
-        customer_state: $("custState") ? $("custState").value.trim() : "",
-        state_code: normalizeStateCode($("custState") ? $("custState").value.trim() : ""),
-        referred_by: $("referredFlag") ? $("referredFlag").value : "No",
-        referrer_name: $("referrerName") ? $("referrerName").value.trim() : "",
-        referrer_designation: $("referrerDesignation") ? $("referrerDesignation").value.trim() : "",
-        referrer_email: $("referrerEmail") ? $("referrerEmail").value.trim() : "",
-      };
-
-      if (!payload.customer_name || !payload.customer_address || !payload.customer_email || !payload.customer_phone || !payload.business_type) {
-        $("orderStatus").textContent = "Please fill Name, Address, Email, Contact No and Business Type.";
-        $("orderStatus").className = "status err";
-        return;
-      }
-
-      const orderText = buildOrderText(payload);
-
-      // 1) Send Email via EmailJS
-      try {
-        await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-          // IMPORTANT: Your EmailJS template "To Email" should be set to {{to_email}} OR fixed to the receiver.
-          // We pass to_email here to avoid "recipient address is empty".
-          to_email: RECEIVER_EMAIL,
-
-          // These keys MUST match your EmailJS template variables like:
-          // {{customer_name}}, {{customer_email}}, {{customer_phone}}, {{customer_address}}, {{order_details}}
-          customer_name: payload.customer_name,
-          customer_email: payload.customer_email,
-          customer_phone: payload.customer_phone,
-          customer_address: payload.customer_address,
-          order_details: orderText,
-          business_type: payload.business_type
-        });
-
-        // 2) Open WhatsApp with prefilled message
-        const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(orderText)}`;
-        window.open(waUrl, "_blank", "noopener,noreferrer");
-
-        $("orderStatus").textContent = "Order submitted ✅ Email sent + WhatsApp opened.";
-        $("orderStatus").className = "status ok";
-
-      } catch (e) {
-        $("orderStatus").textContent = "Email sending failed: " + (e?.text || e?.message || "Unknown error") + " (check EmailJS service/template & Gmail permission).";
-        $("orderStatus").className = "status err";
-        console.error(e);
-      }
-    });
-
-    // Init page
-    (async ()=>{
-      await loadPricingFromFirestore();
-      renderMedicineRows();
-      // If user is already logged in and role exists, apply immediately
-      applyRoleAndStateFromLogin();
-    })();
-
-    // Top submit button triggers same action
-    const btnSubmitTop = document.getElementById("btnSubmitTop");
-    if (btnSubmitTop) {
-      btnSubmitTop.addEventListener("click", () => {
-        document.getElementById("btnSubmit").click();
+        try {
+          await signInWithEmailAndPassword(auth, email, pass);
+          if ($("authStatus")) {
+            $("authStatus").textContent = "Admin logged in ✅";
+            $("authStatus").className = "status ok";
+          }
+        } catch (e) {
+          if ($("authStatus")) {
+            $("authStatus").textContent = (e?.message || "Admin login failed");
+            $("authStatus").className = "status err";
+          }
+        }
       });
-    }
 
-
-    const referredFlag = document.getElementById("referredFlag");
-    const ref1 = document.getElementById("referrerFields");
-    const ref2 = document.getElementById("referrerFields2");
-    const ref3 = document.getElementById("referrerFields3"); // optional (if present)
-
-    if (referredFlag) {
-      const toggleRef = () => {
-        const on = referredFlag.value === "Yes";
-        if (ref1) ref1.style.display = on ? "block" : "none";
-        if (ref2) ref2.style.display = on ? "block" : "none";
-        if (ref3) ref3.style.display = on ? "block" : "none";
-      };
-      referredFlag.addEventListener("change", toggleRef);
-      toggleRef();
-    }
+      // Signup
+      const btnSignup = $("btnSignup");
+      if (btnSignup) btnSignup.addEventListener("click", async () => {
+        if ($("authStatus")) $("authStatus").textContent = "";
+        const email = ($("loginEmail")?.value || "").trim();
+        const pass = ($("loginPass")?.value || "").trim();
+        try {
+          await createUserWithEmailAndPassword(auth, email, pass);
+          if ($("authStatus")) {
+            $("authStatus").textContent = "Account created & logged in ✅";
+            $("authStatus").className = "status ok";
+          }
+        } catch (e) {
+          if ($("authStatus")) {
+            $("authStatus").textContent = (e?.message || "Sign-up failed");
+            $("authStatus").className = "status err";
+          }
+        }
       });
+
+      // Logout
+      const btnLogout = $("btnLogout");
+      if (btnLogout) btnLogout.addEventListener("click", async () => {
+        try { await signOut(auth); } catch(e){}
+      });
+
+      // Submit Order
+      const btnSubmit = $("btnSubmit");
+      if (btnSubmit) btnSubmit.addEventListener("click", async () => {
+        if ($("orderStatus")) $("orderStatus").textContent = "";
+
+        const items = getOrderItems();
+        if (items.length === 0) {
+          if ($("orderStatus")) {
+            $("orderStatus").textContent = "Please select at least 1 medicine with quantity.";
+            $("orderStatus").className = "status err";
+          }
+          return;
+        }
+
+        const payload = {
+          customer_name: ($("custName")?.value || "").trim(),
+          customer_address: ($("custAddress")?.value || "").trim(),
+          customer_email: ($("custEmail")?.value || "").trim(),
+          customer_phone: ($("custPhone")?.value || "").trim(),
+          receiver_email: RECEIVER_EMAIL,
+          items,
+          business_type: $("custBusiness") ? ($("custBusiness").value || "").trim() : "",
+          customer_state: $("custState") ? ($("custState").value || "").trim() : "",
+          state_code: normalizeStateCode($("custState") ? ($("custState").value || "").trim() : ""),
+          referred_by: $("referredFlag") ? $("referredFlag").value : "No",
+          referrer_name: $("referrerName") ? ($("referrerName").value || "").trim() : "",
+          referrer_designation: $("referrerDesignation") ? ($("referrerDesignation").value || "").trim() : "",
+          referrer_email: $("referrerEmail") ? ($("referrerEmail").value || "").trim() : "",
+        };
+
+        if (!payload.customer_name || !payload.customer_address || !payload.customer_email || !payload.customer_phone || !payload.business_type) {
+          if ($("orderStatus")) {
+            $("orderStatus").textContent = "Please fill Name, Address, Email, Contact No and Business Type.";
+            $("orderStatus").className = "status err";
+          }
+          return;
+        }
+
+        const orderText = buildOrderText(payload);
+
+        try {
+          await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+            to_email: RECEIVER_EMAIL,
+            customer_name: payload.customer_name,
+            customer_email: payload.customer_email,
+            customer_phone: payload.customer_phone,
+            customer_address: payload.customer_address,
+            order_details: orderText,
+            business_type: payload.business_type
+          });
+
+          const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(orderText)}`;
+          window.open(waUrl, "_blank", "noopener,noreferrer");
+
+          if ($("orderStatus")) {
+            $("orderStatus").textContent = "Order submitted ✅ Email sent + WhatsApp opened.";
+            $("orderStatus").className = "status ok";
+          }
+        } catch (e) {
+          if ($("orderStatus")) {
+            $("orderStatus").textContent = "Email sending failed: " + (e?.text || e?.message || "Unknown error");
+            $("orderStatus").className = "status err";
+          }
+          console.error(e);
+        }
+      });
+
+      // If user is already logged in (rare), apply immediately (safe)
+      try { applyRoleAndStateFromLogin(); } catch(e){}
     }
 
-    $("custEmail").addEventListener("focus", () => {
-      // auto-fill customer email from logged-in user (optional)
-      const user = auth.currentUser;
-      if (user && !$("custEmail").value) $("custEmail").value = user.email || "";
-    });
-
-  </script>
+    if (document.readyState === "loading") {
+      window.addEventListener("DOMContentLoaded", bootUI);
+    } else {
+      bootUI();
+    }
+</script>
 </head>
 
 <body>
@@ -1099,6 +1073,7 @@ function getOrderItems() {
       </div>
       <div class="row" style="margin-top:12px">
         <button class="btn btn-primary" id="btnLogin">Login</button>
+        <button class="btn btn-ghost" id="btnAdminLogin" type="button">Admin Login</button>
         <button class="btn btn-ghost" id="btnSignup">Create Account</button>
       </div>
       <div class="status" id="authStatus"></div>
@@ -1174,6 +1149,64 @@ function getOrderItems() {
         </div>
       </div>
 
+
+      <!-- ADMIN: Pricing & Discount Control (visible only to admin emails) -->
+      <div class="card hide" id="adminPricingCard" style="margin-top:14px">
+        <h2 style="margin-bottom:10px">Admin Pricing Control</h2>
+        <div class="grid grid-2">
+          <div>
+            <label>State (Pricing Table)</label>
+            <select id="adminState">
+              <option value="GJ">Gujarat (GJ)</option>
+              <option value="RJ">Rajasthan (RJ)</option>
+              <option value="MP">Madhya Pradesh (MP)</option>
+              <option value="MH">Maharashtra (MH)</option>
+              <option value="UP">Uttar Pradesh (UP)</option>
+              <option value="DL">Delhi (DL)</option>
+              <option value="OT">Other (OT)</option>
+            </select>
+            <div class="muted" style="margin-top:6px">Edits saved here apply for ALL users.</div>
+          </div>
+          <div>
+            <label>Global Discount % (applies to all users)</label>
+            <input id="adminGlobalDiscount" type="number" min="0" max="100" step="0.01" value="10">
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:10px">
+          <div style="flex:2">
+            <label>Choose Medicine (Brand)</label>
+            <select id="adminBrand"></select>
+          </div>
+          <div style="flex:1">
+            <label>Doctor Price</label>
+            <input id="pDoctor" type="number" step="0.01" placeholder="₹">
+          </div>
+          <div style="flex:1">
+            <label>Wholeseller Price</label>
+            <input id="pWhole" type="number" step="0.01" placeholder="₹">
+          </div>
+          <div style="flex:1">
+            <label>Retailer Price</label>
+            <input id="pRetail" type="number" step="0.01" placeholder="₹">
+          </div>
+          <div style="flex:1">
+            <label>Stockist Price</label>
+            <input id="pStock" type="number" step="0.01" placeholder="₹">
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:12px">
+          <button class="btn btn-primary" id="btnAdminSave">Save Pricing</button>
+          <button class="btn btn-ghost" id="btnAdminReload" type="button">Reload Pricing</button>
+          <span class="muted" id="adminMsg" style="flex:2"></span>
+        </div>
+
+        <div class="note" style="margin-top:12px">
+          <b>Security note:</b> UI shows this only to admin emails, but you must also set Firestore Rules to block non-admin writes.
+        </div>
+      </div>
+
       <div id="medSection" style="margin-top:14px">
         <h2 style="margin-bottom:10px">Select Medicines & Quantity</h2>
 
@@ -1200,14 +1233,8 @@ function getOrderItems() {
         </table>
         <div class="muted" style="margin-top:8px">Set quantity 0 for items not required.</div>
 </div>
-      </div>
 
-      <!-- Admin Panel (visible only to admin login) -->
-      <div id="adminPanel" class="note hide" style="margin-top:14px">
-        <div id="adminTableWrap"></div>
-        <div class="muted" style="margin-top:8px">
-          Note: To make this truly admin-only, add Firestore Security Rules so only admin can write <b>config/pricing_v1</b>.
-        </div>
+      
       </div>
 
       <div class="row" style="margin-top:14px">
