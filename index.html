@@ -1,1355 +1,1260 @@
-<!DOCTYPE html>
+  <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Ahanitya Pharma Supplies LLP - Order App</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ahanitya Order Portal</title>
+
   <style>
-    :root{
-      --brand:#11799a;
-      --bg:#f6fbfc;
-      --card:#ffffff;
-      --text:#0f172a;
-      --muted:#64748b;
-      --border:#e2e8f0;
-      --danger:#ef4444;
-      --ok:#16a34a;
-      --warn:#f59e0b;
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      color:var(--text);
-      background:linear-gradient(180deg, #eaf7fb, var(--bg));
-    }
-    header{
-      position:sticky; top:0; z-index:5;
-      background:rgba(255,255,255,.9);
-      backdrop-filter: blur(8px);
-      border-bottom:1px solid var(--border);
-    }
-    .wrap{max-width:1200px; margin:0 auto; padding:16px}
-    .topbar{
-      display:flex; gap:12px; align-items:center; justify-content:space-between;
-      flex-wrap:wrap;
-    }
-    .brand{
-      display:flex; gap:10px; align-items:center;
-    }
-    .logo{
-      width:42px; height:42px; border-radius:12px;
-      background: radial-gradient(circle at 30% 30%, #57c6df, var(--brand));
-      box-shadow:0 8px 24px rgba(17,121,154,.22);
-    }
-    .brand h1{font-size:16px; margin:0}
-    .brand p{margin:0; color:var(--muted); font-size:12px}
-    .pill{
-      display:inline-flex; align-items:center; gap:8px;
-      padding:8px 10px; border:1px solid var(--border);
-      border-radius:999px; background:#fff;
-      font-size:12px; color:var(--muted);
-    }
-    .btn{
-      border:1px solid var(--border);
-      background:#fff;
-      padding:10px 12px;
-      border-radius:12px;
-      cursor:pointer;
-      font-weight:600;
-      transition:.15s transform, .15s box-shadow, .15s background;
-      display:inline-flex; align-items:center; justify-content:center; gap:8px;
-      user-select:none;
-    }
-    .btn:hover{transform: translateY(-1px); box-shadow:0 8px 24px rgba(2,8,23,.06)}
-    .btn.primary{background:var(--brand); color:#fff; border-color:transparent}
-    .btn.danger{background:var(--danger); color:#fff; border-color:transparent}
-    .btn.ok{background:var(--ok); color:#fff; border-color:transparent}
-    .btn.small{padding:8px 10px; border-radius:10px; font-size:12px}
-    .btn:disabled{opacity:.5; cursor:not-allowed; transform:none; box-shadow:none}
-    main .wrap{padding-top:18px; padding-bottom:28px}
-    .grid{
-      display:grid;
-      grid-template-columns: 1.4fr .9fr;
-      gap:16px;
-    }
-    @media (max-width: 980px){
-      .grid{grid-template-columns:1fr}
-    }
-    .card{
-      background:var(--card);
-      border:1px solid var(--border);
-      border-radius:18px;
-      box-shadow:0 10px 30px rgba(2,8,23,.05);
-      overflow:hidden;
-    }
-    .card .hd{
-      padding:14px 16px;
-      border-bottom:1px solid var(--border);
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-      flex-wrap:wrap;
-    }
-    .card .hd h2{margin:0; font-size:15px}
-    .card .bd{padding:16px}
-    .muted{color:var(--muted)}
-    .row{display:flex; gap:10px; flex-wrap:wrap}
+    :root { 
+  --brand:#1b8ea6;
+  --bg:#f4f7fb;
+  --card:#ffffff;
+  --text:#0f172a;
+  --muted:#475569;
+  --danger:#dc2626;
+
+  /* Doctor-friendly sizing */
+  --base-font: 16px;
+  --label-font: 13px;
+  --input-font: 15px;
+  --table-font: 14px;
+
+  /* Accents */
+  --accent-soft: rgba(27,142,166,.22);
+  --accent-strong: rgba(27,142,166,.55);
+}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:linear-gradient(180deg,#f7fbff,#eef5ff);color:var(--text)}
+    .wrap{max-width:980px;margin:0 auto;padding:24px}
+    .card{position:relative;background:linear-gradient(180deg,#ffffff,#fbfdff);border:1px solid #e5e7eb;border-radius:16px;padding:18px;box-shadow:0 6px 20px rgba(0,0,0,.08);overflow:hidden}
+    h1{margin:0 0 10px;font-size:22px}
+    h2{margin:0 0 12px;font-size:18px;color:#dfe8ff}
+    .grid{display:grid;gap:14px}
+    @media (min-width:860px){ .grid-2{grid-template-columns:1fr 1fr} }
+    label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+    input,textarea,select{width:100%;padding:11px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:var(--text);outline:none}
+    textarea{min-height:90px;resize:vertical}
+    .row{display:flex;gap:10px;align-items:center}
     .row > *{flex:1}
-    label{font-size:12px; color:var(--muted); font-weight:700; display:block; margin-bottom:6px}
-    input, select, textarea{
-      width:100%;
-      padding:10px 12px;
-      border:1px solid var(--border);
-      border-radius:12px;
-      outline:none;
-      background:#fff;
-      font-size:14px;
+    .btn{cursor:pointer;border:none;border-radius:12px;padding:12px 14px;font-weight:700}
+    .btn-primary{background:var(--brand);color:white}
+    .btn-ghost{background:transparent;border:1px solid rgba(255,255,255,.14);color:var(--text)}
+    .btn-danger{background:var(--danger);color:#1a0b0b}
+    .muted{color:var(--muted);font-size:12px}
+    .pill{display:inline-block;padding:6px 10px;border-radius:999px;background:rgba(17,121,154,.15);border:1px solid rgba(17,121,154,.35);color:#bfefff;font-size:12px}
+    table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:12px}
+    th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,.08);text-align:left;font-size:13px}
+    th{color:#cfe6ff;font-weight:700;background:rgba(255,255,255,.04)}
+    .right{text-align:right}
+    .hide{display:none !important}
+    .note{padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.05);border:1px dashed rgba(255,255,255,.18);font-size:12px;color:var(--muted)}
+    .status{font-size:13px;margin-top:8px}
+    .status.ok{color:#76ffb1}
+    .status.err{color:#ff9aa4}
+    .na-text{display:inline-block;color:var(--danger);font-weight:800;font-size:12px}
+  
+    /* --- Alignment fix: Order Details & Medicines table ONLY --- */
+    .grid.grid-2{
+      align-items: flex-start;
     }
-    input:focus, select:focus, textarea:focus{
-      border-color: rgba(17,121,154,.55);
-      box-shadow:0 0 0 4px rgba(17,121,154,.12);
+    .grid.grid-2 > div{
+      min-width: 0;
     }
 
-    .toolbar{
-      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+    table{
+      table-layout: fixed;
     }
-    .toolbar input{max-width:340px}
-    .table{
-      width:100%;
-      border-collapse:separate;
-      border-spacing:0;
-      overflow:hidden;
-      border:1px solid var(--border);
-      border-radius:14px;
-    }
-    .table th, .table td{
-      padding:10px;
-      border-bottom:1px solid var(--border);
-      vertical-align:top;
-      text-align:left;
-      font-size:13px;
-    }
-    .table th{
-      background:#f8fafc;
-      color:#0f172a;
-      font-size:12px;
-      text-transform:uppercase;
-      letter-spacing:.04em;
-    }
-    .table tr:last-child td{border-bottom:none}
-    .badge{
-      font-size:11px;
-      padding:4px 8px;
-      border-radius:999px;
-      border:1px solid var(--border);
-      background:#fff;
-      color:var(--muted);
-      display:inline-block;
-    }
-    .qtybox{
-      display:flex; align-items:center; gap:6px;
-    }
-    .qty{
-      min-width:44px;
-      text-align:center;
-      font-weight:800;
-      border:1px solid var(--border);
-      border-radius:10px;
-      padding:8px 10px;
-      background:#fff;
-    }
-    .two{
+        th:nth-child(1), td:nth-child(1){ width: 45px; }
+    th:nth-child(2), td:nth-child(2){ width: 130px; }
+    th:nth-child(3), td:nth-child(3){ width: 230px; }
+    th:nth-child(4), td:nth-child(4){ width: 120px; } /* Price */
+    th:nth-child(5), td:nth-child(5){ width: 130px; } /* Qty */
+    th:nth-child(6), td:nth-child(6){ width: 160px; } /* Measurement */
+
+    .qty{ width:100%; }
+    .uom{ width:100%; }
+
+
+    /* --- Order Details form alignment (no overlap) --- */
+    #orderCard .grid.grid-2{
       display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:10px;
+      gap:14px;
+      grid-auto-flow: row;
+      align-items:start;
     }
-    @media (max-width:560px){.two{grid-template-columns:1fr}}
-    .notice{
-      padding:10px 12px;
-      border:1px dashed rgba(17,121,154,.45);
-      background:rgba(17,121,154,.06);
-      border-radius:14px;
-      font-size:12px;
-      color:#0f172a;
+    #orderCard .grid.grid-2 > div{
+      min-width:0;
     }
-    .hidden{display:none !important}
-    .kpi{
-      display:flex; gap:10px; flex-wrap:wrap;
+    #orderCard .grid.grid-2 input,
+    #orderCard .grid.grid-2 select,
+    #orderCard .grid.grid-2 textarea{
+      width:100%;
+      display:block;
+      min-width:0;
     }
-    .kpi .box{
-      flex:1;
-      min-width:140px;
-      border:1px solid var(--border);
-      background:#fff;
-      border-radius:16px;
-      padding:12px;
+    /* Desktop: strict 2-column layout */
+    @media (min-width:860px){
+      #orderCard .grid.grid-2{ grid-template-columns: 1fr 1fr; }
     }
-    .kpi .box .t{font-size:12px; color:var(--muted); font-weight:700}
-    .kpi .box .v{font-size:18px; font-weight:900; margin-top:2px}
-    .footer-note{
-      font-size:12px; color:var(--muted);
-      margin-top:10px;
+    /* Mobile: stack fields */
+    @media (max-width:859.98px){
+      #orderCard .grid.grid-2{ grid-template-columns: 1fr; }
     }
-    .hr{height:1px; background:var(--border); margin:12px 0}
-    .right-actions{display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end}
-    .linkish{color:var(--brand); text-decoration:none; font-weight:800}
-  </style>
-</head>
-<body>
 
-<header>
-  <div class="wrap">
-    <div class="topbar">
-      <div class="brand">
-        <div class="logo" aria-hidden="true"></div>
-        <div>
-          <h1>Ahanitya Pharma Supplies LLP — Order Portal</h1>
-          <p>Add items to cart & share order</p>
-        </div>
-      </div>
 
-      <div class="toolbar">
-        <span id="whoPill" class="pill">Not logged in</span>
-        <button class="btn small" id="btnOpenUserLogin">User Login</button>
-        <button class="btn small" id="btnOpenAdminLogin">Admin Login</button>
-        <button class="btn small danger hidden" id="btnLogout">Logout</button>
-      </div>
-    </div>
-  </div>
-</header>
+/* --- Compact Order Details inputs (NO other sections affected) --- */
+#orderCard input,
+#orderCard select{
+  padding:6px 10px;
+  box-sizing:border-box;
+}
 
-<main>
-  <div class="wrap">
-    <div class="grid">
 
-      <!-- LEFT: Inventory + User controls -->
-      <section class="card" id="inventoryCard">
-        <div class="hd">
-          <h2>Medicine List</h2>
-          <div class="toolbar">
-            <input id="searchBox" type="text" placeholder="Search medicine (name / salt / category)..." />
-            <select id="sortBy" style="max-width:200px">
-              <option value="name">Sort: Name</option>
-              <option value="priceAsc">Sort: Price (Low→High)</option>
-              <option value="priceDesc">Sort: Price (High→Low)</option>
-              <option value="stockDesc">Sort: Stock (High→Low)</option>
-            </select>
-          </div>
-        </div>
+/* --- Logo sizing (responsive & premium) --- */
+/* --- Logo card stays white in BOTH themes --- */
+.logo-card{
+  background:#ffffff !important;
+}
+.logo-img{
+  max-height:130px;
+  max-width:400px;
+  width:auto;
+  object-fit:contain;
+}
 
-        <div class="bd">
-          <div class="notice">
-            <b>How to order:</b> Login → add quantities → share via WhatsApp or Email.<br/>
-            <span class="muted">Note: Stock and prices are managed by Admin (LIVE from Google Sheet).</span>
-          </div>
 
-          <div class="hr"></div>
+/* --- Section backgrounds (replace images in /assets/) --- */
+#orderCard{
+  background:
+    linear-gradient(rgba(6,11,20,0.60), rgba(6,11,20,0.60)),
+    url("       ");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
 
-          <div style="overflow:auto">
-            <table class="table" id="invTable">
-              <thead>
-                <tr>
-                  <th style="min-width:240px">Medicine</th>
-                  <th style="min-width:130px">MRP</th>
-                  <th style="min-width:130px">Price</th>
-                  <th style="min-width:110px">Stock</th>
-                  <th style="min-width:170px">Add / Remove</th>
-                </tr>
-              </thead>
-              <tbody id="invTbody"></tbody>
-            </table>
-          </div>
+/* Select Medicines & Quantity background (scoped) */
+#medSection{
+  background:
+    linear-gradient(rgba(10,18,35,0.40), rgba(10,18,35,0.40)),
+    url("images/product portfolio (1).png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  padding:16px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.08);
+}
 
-          <div class="footer-note">
-            Tip: This is a static app. For multi-user live inventory, you’ll need a backend (Google Sheets/App Script or database).
-          </div>
-        </div>
-      </section>
 
-      <!-- RIGHT: Cart + Share -->
-      <aside class="card" id="cartCard">
-        <div class="hd">
-          <h2>Cart & Order Sharing</h2>
-          <div class="right-actions">
-            <button class="btn small" id="btnClearCart">Clear Cart</button>
-          </div>
-        </div>
-        <div class="bd">
-          <div class="kpi">
-            <div class="box">
-              <div class="t">Items</div>
-              <div class="v" id="kpiItems">0</div>
-            </div>
-            <div class="box">
-              <div class="t">Total Qty</div>
-              <div class="v" id="kpiQty">0</div>
-            </div>
-            <div class="box">
-              <div class="t">Approx Total</div>
-              <div class="v" id="kpiTotal">₹0</div>
-            </div>
-          </div>
+/* --- Light theme input & dropdown styling --- */
+input, textarea{
+  background:#ffffff;
+  color:#111827;
+}
 
-          <div class="hr"></div>
+select{
+  background:#ffffff;
+  color:#000000 !important;
+  font-weight:700;
+}
 
-          <div id="cartEmpty" class="notice">
-            Your cart is empty. Add medicines from the list.
-          </div>
+select option{
+  color:#000000;
+  font-weight:700;
+}
 
-          <div id="cartList"></div>
 
-          <div class="hr"></div>
+/* --- Brand accent line on cards --- */
+.card::before{
+  content:"";
+  position:absolute;
+  left:0; right:0; top:0;
+  height:6px;
+  background:linear-gradient(90deg,var(--accent-strong),var(--accent-soft));
+}
 
-          <label>Remarks (optional)</label>
-          <textarea id="remarks" rows="3" placeholder="e.g., urgent delivery, preferred batch, credit terms, etc."></textarea>
+/* --- Doctor-friendly typography --- */
+body{font-size:var(--base-font)}
+label{font-size:var(--label-font)}
+input,textarea,select{font-size:var(--input-font)}
+th,td{font-size:var(--table-font)}
+h1{font-size:24px}
+h2{font-size:19px}
 
-          <div class="hr"></div>
+/* Make form elements more readable on light theme */
+input, textarea{
+  background:#ffffff;
+  color:#111827;
+}
+select{
+  background:#ffffff;
+  color:#000000 !important;
+  font-weight:700;
+}
+select option{
+  color:#000000;
+  font-weight:700;
+}
 
-          <div class="row">
-            <button class="btn primary" id="btnConfirmOrder">Confirm Order</button>
-            <button class="btn ok" id="btnShareWhatsApp">Share on WhatsApp</button>
-            <button class="btn" id="btnSendEmail">Send Email</button>
-          </div>
+/* --- Theme toggle button --- */
+.btn-toggle{
+  background:transparent;
+  border:1px solid rgba(15,23,42,.18);
+  color:#0f172a;
+}
+.btn-toggle:hover{border-color:rgba(27,142,166,.55)}
 
-          <div class="footer-note">
-            Orders will be shared to: <b>ahanityapharmasuppliesllp@gmail.com</b>
-          </div>
-        </div>
-      </aside>
+/* --- Dark theme (toggle) --- */
+body[data-theme="dark"]{
+  --bg:#060b14;
+  --card:#0f1a2b;
+  --text:#f1f5ff;
+  --muted:#9fb2cc;
+  background:linear-gradient(180deg,#071022,#0b1220);
+}
+body[data-theme="dark"] .card{
+  background:rgba(15,26,43,.90);
+  border:1px solid rgba(255,255,255,.10);
+  box-shadow:0 8px 24px rgba(0,0,0,.35);
+}
+body[data-theme="dark"] .btn-toggle{
+  border-color:rgba(255,255,255,.18);
+  color:#f1f5ff;
+}
+body[data-theme="dark"] input,
+body[data-theme="dark"] textarea,
+body[data-theme="dark"] select{
+  background:rgba(255,255,255,.06);
+  color:var(--text);
+  border:1px solid rgba(255,255,255,.12);
+}
+body[data-theme="dark"] select,
+body[data-theme="dark"] select option{
+  color:var(--text) !important;
+  font-weight:700;
+}
+body[data-theme="dark"] th{background:rgba(255,255,255,.04); color:#cfe6ff}
 
-    </div>
 
-    <!-- USER LOGIN MODAL -->
-    <section class="card hidden" id="userLoginCard" style="margin-top:16px">
-      <div class="hd">
-        <h2>User Login (Doctor / Retailer / Wholesaler)</h2>
-        <div class="right-actions">
-          <button class="btn small" id="btnCloseUserLogin">Close</button>
-        </div>
-      </div>
-      <div class="bd">
-        <div class="two">
+/* --- Light mode visibility fixes (Status pill + Table + Section overlays) --- */
+
+/* Status pill readable in light mode */
+body:not([data-theme="dark"]) .pill{
+  background:#e6f6fa;
+  border:1px solid #1b8ea6;
+  color:#0f172a;
+  font-weight:600;
+}
+
+/* Light mode: use LIGHT overlays on section background images */
+body:not([data-theme="dark"]) #orderCard{
+  background:
+    linear-gradient(rgba(255,255,255,0.40), rgba(255,255,255,0.40)),
+    url("assets/order-bg.jpg");
+}
+
+body:not([data-theme="dark"]) #medSection{
+  background:
+    linear-gradient(rgba(255,255,255,0.90), rgba(255,255,255,0.90)),
+    url("images/product portfolio (1).png");
+  border:1px solid #e5e7eb;
+}
+
+/* Light mode: table text/borders readable */
+body:not([data-theme="dark"]) th{
+  color:#0f172a;
+  background:#f1f5f9;
+}
+body:not([data-theme="dark"]) td{
+  color:#0f172a;
+}
+body:not([data-theme="dark"]) th, 
+body:not([data-theme="dark"]) td{
+  border-bottom:1px solid #e5e7eb;
+}
+
+
+/* --- Fixed size + 2D scroll for Select Medicines & Quantity --- */
+#medSection{
+  /* Fixed box size (adjust if needed) */
+  height: 520px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden; /* keep scroll only inside table area */
+}
+
+/* The scrollable area inside the section (both vertical + horizontal) */
+#medSection .medScroll{
+  height: calc(520px - 130px); /* leaves room for title + buttons + small notes */
+  overflow-y: auto;
+  overflow-x: auto;
+  /* enables top-bottom + left-right scroll */
+  -webkit-overflow-scrolling: touch;
+  border-radius: 12px;
+}
+
+
+/* Ensure horizontal scroll appears when needed */
+#medSection table{
+  width: max-content;
+  min-width: 1100px; /* forces horizontal scroll when container is narrower */
+  border-collapse: collapse;
+}
+
+@media (max-width: 480px){
+  #medSection{ height: 480px; }
+  #medSection .medScroll{ height: calc(480px - 140px); }
+  #medSection table{ width:max-content; min-width: 980px; }
+}
+
+
+
+/* Make sure scroll container allows full-width content */
+#medSection .medScroll{
+  white-space: nowrap;
+}
+#medSection .medScroll table,
+#medSection .medScroll thead,
+#medSection .medScroll tbody,
+#medSection .medScroll tr{
+  white-space: normal;
+}
+/* Login / Create Account: prevent overlap */
+.login-row{
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  flex-wrap: wrap;          /* stacks on small screens */
+}
+
+.login-row .field{
+  flex: 1 1 200px;          /* each column tries to be 50%, min 280px */
+  min-width: 200px;
+}
+
+.login-row input{
+  width: 100%;
+  box-sizing: border-box;
+
+}
+#loginEmail,
+#loginPass{
+  height:38px;          /* fixed equal height */
+  padding:6px 10px;     /* compact but neat */
+  box-sizing:border-box;
+  font-size:14px;
+}
+
+
+</style>
+
+  <!-- EmailJS -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+  <!-- Firebase (Auth) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } 
+      from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+
+    // ✅ 1) PUT YOUR FIREBASE CONFIG HERE
+    const firebaseConfig = {
+      apiKey: "AIzaSyCneC5CT9qfM8myRfoMZ7N4efUezDYMbLY",
+      authDomain: "ahanitya-order-app.firebaseapp.com",
+      projectId: "ahanitya-order-app",
+      appId: "1:107492901712:web:b53eed0e9934ff6f1b6255"
+    };
+
+    // ✅ 2) PUT YOUR EMAILJS DETAILS HERE
+    const EMAILJS_PUBLIC_KEY = "bKeNAq67qFjMMOtmO";
+    const EMAILJS_SERVICE_ID = "service_94vs7qt";
+    const EMAILJS_TEMPLATE_ID = "template_9qtgzil";
+
+    // Fixed receiver + WhatsApp
+    const RECEIVER_EMAIL = "infoahanityapharmalifescellp@gmail.com";
+    const WHATSAPP_NUMBER = "918487090212"; // +91 8487090212 (no +)
+
+    // ✅ Admin control (only these emails can edit prices/discounts)
+    const ADMIN_EMAILS = [
+      "infoahanityapharmalifescellp@gmail.com",
+      "ahanityapharmasuppliesllp@gmail.com"
+      // Add more admin emails here
+    ];
+
+    // Pricing config stored in Firestore (global discount, etc.)
+    let PRICING = { globalDiscountPct: 10 };
+
+    // ---------- Init ----------
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+
+    // ---------- UI Helpers ----------
+    const $ = (id) => document.getElementById(id);
+    const show = (el) => el.classList.remove("hide");
+    const hide = (el) => el.classList.add("hide");
+
+    // ---------- Medicines (Edit your list) ----------
+    let MEDICINES = [
+      // You can set state-wise price/discount like this:
+      // pricesByState: { GJ:{doctor:140,wholeseller:130,retailer:120,stockist:125}, RJ:{doctor:145,wholeseller:135,retailer:125,stockist:130} }
+      // discountsByState: { GJ:{doctor:5,wholeseller:8,retailer:10,stockist:7}, RJ:{doctor:3,wholeseller:6,retailer:8,stockist:5} }
+      // defaultDiscounts: { doctor:0, wholeseller:0, retailer:0, stockist:0 }
+      { brand: "AZIN-500", strength: "Azithromycin Tablets I.P 500 mg" , available: true , prices: { doctor: null, wholeseller: null, retailer: null, stockist: null }},
+      { brand: "ASP", strength: "Aceclofenac 100 mg + Paracetamol 325 mg + Serratiopeptidase 15 mg" , available: true , prices: { doctor: null, wholeseller: null, retailer: null, stockist: null }},
+      { brand: "A-SUNAC", strength: "Aceclofenac 100 mg + Paracetamol 325 mg" , available: true , prices: { doctor: null, wholeseller: null, retailer: null, stockist: null }},
+      { brand: "APLSL-DiaMet", strength: "Glimepiride 2 mg + Metformin HCl (ER)" , available: false , prices: { doctor: null, wholeseller: null, retailer: null, stockist: null }},
+      { brand: "APLSL-Lulizid", strength: "Luliconazole 1%" , available: false , prices: { doctor: null, wholeseller: null, retailer: null, stockist: null }},
+      { brand: "Ahanitya-Ketozin", strength: "Ketoconazole 2%" , available: false , prices: { doctor: null, wholeseller: null, retailer: null, stockist: null }},
+      { brand: "APLSL-Cutiderm", strength: "Itraconazole 1% + Ofloxacin 0.75% + Ornidazole 2% + Clobetasol 0.05%" , available: false , prices: { doctor: null, wholeseller: null, retailer: null, stockist: null }},
+      { brand: "Ahanitya-AmbroLev", strength: "Ambroxol 60 mg + Levocetirizine 2.5 mg + Paracetamol 500 mg + Phenylephrine 5 mg" , available: false , prices: { doctor: null, wholeseller: null, retailer: null, stockist: null }},
+      { brand: "PANTO-DSR", strength: "Pantoprazole 40 mg + Domperidone 30 mg" , available: true , prices: { doctor: null, wholeseller: null, retailer: null, stockist: null }},
+      { brand: "LE-MONT", strength: "Montelukast 10 mg + Levocetirizine 5 mg" , available: true , prices: { doctor: null, wholeseller: null, retailer: null, stockist: null }}
+    ];
+
+    // ---------- Firestore Pricing (Admin-controlled) ----------
+    const PRICING_DOC = doc(db, "config", "pricing_v1");
+
+    async function loadPricingFromFirestore(){
+      try{
+        const snap = await getDoc(PRICING_DOC);
+        if (snap.exists()){
+          const data = snap.data() || {};
+          if (Array.isArray(data.medicines)) MEDICINES = data.medicines;
+          if (data.pricing && typeof data.pricing === "object") PRICING = { ...PRICING, ...data.pricing };
+          if (typeof data.globalDiscountPct === "number") PRICING.globalDiscountPct = Number(data.globalDiscountPct); // backward compat
+        }
+      }catch(e){
+        console.warn("Pricing load failed (using defaults):", e?.message || e);
+      }
+    }
+
+    async function savePricingToFirestore(){
+      // Only admin should call this (UI enforces; Firestore rules should enforce too)
+      await setDoc(PRICING_DOC, { medicines: MEDICINES, pricing: PRICING }, { merge: true });
+    }
+
+    function isAdminUser(email){
+      return ADMIN_EMAILS.map(x=>String(x||"").toLowerCase()).includes(String(email||"").toLowerCase());
+    }
+
+    function adminStateCode(){
+      const st = normalizeStateCode(document.getElementById("custState")?.value || "");
+      return st || "GJ";
+    }
+
+    function buildAdminPriceTable(){
+      const wrap = document.getElementById("adminTableWrap");
+      const st = adminStateCode();
+      const roleKeys = ["doctor","wholeseller","retailer","stockist"];
+
+      let html = `
+        <div class="row" style="align-items:center;margin-bottom:10px">
           <div>
-            <label>Name</label>
-            <input id="uName" type="text" placeholder="Enter full name"/>
+            <div style="font-weight:800">Admin Pricing Control</div>
+            <div class="muted">Editing State: <b>${st}</b> (Prices saved state-wise. Discount is global.)</div>
           </div>
           <div>
-            <label>Business Type</label>
-            <select id="uType">
-              <option value="">Select</option>
-              <option>Doctor</option>
-              <option>Retailer</option>
-              <option>Wholesaler</option>
-            </select>
+            <label style="margin:0 0 6px">Global Discount (%)</label>
+            <input id="adminGlobalDiscount" type="number" min="0" max="100" step="0.01" value="${Number(PRICING.globalDiscountPct||0)}" />
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-end">
+            <button class="btn btn-primary" id="btnSavePricing" type="button">Save</button>
+            <button class="btn btn-ghost" id="btnReloadPricing" type="button">Reload</button>
           </div>
         </div>
 
-        <div class="two" style="margin-top:10px">
-          <div>
-            <label>Email</label>
-            <input id="uEmail" type="email" placeholder="name@example.com"/>
-          </div>
-          <div>
-            <label>Phone</label>
-            <input id="uPhone" type="tel" placeholder="10-digit mobile"/>
-          </div>
-        </div>
-
-        <div class="hr"></div>
-
-        <button class="btn primary" id="btnUserLogin">Login</button>
-        <div class="footer-note muted">This is a basic login (saved in your browser). No OTP or server authentication in this version.</div>
-      </div>
-    </section>
-
-    <!-- ADMIN PANEL -->
-    <section class="card hidden" id="adminCard" style="margin-top:16px">
-      <div class="hd">
-        <h2>Admin Inventory Panel</h2>
-        <div class="right-actions">
-          <span class="badge">Admin: <span id="adminEmailShow"></span></span>
-          <button class="btn small" id="btnCloseAdmin">Close</button>
-        </div>
-      </div>
-
-      <div class="bd">
-        <div class="notice">
-          <b>Admin controls:</b> Add / Edit / Delete medicines, set MRP/Price/Stock.
-          <div class="muted">Saved in Google Sheet (LIVE). All users will see updated inventory.</div>
-        </div>
-
-        <div class="hr"></div>
-
-        <div class="two">
-          <div>
-            <label>Medicine Name</label>
-            <input id="aName" type="text" placeholder="e.g., Levocetirizine 5mg Tablets"/>
-          </div>
-          <div>
-            <label>Salt / Composition</label>
-            <input id="aSalt" type="text" placeholder="e.g., Levocetirizine Hydrochloride 5mg"/>
-          </div>
-        </div>
-
-        <div class="two" style="margin-top:10px">
-          <div>
-            <label>Category</label>
-            <input id="aCat" type="text" placeholder="e.g., Anti-allergic"/>
-          </div>
-          <div>
-            <label>Pack</label>
-            <input id="aPack" type="text" placeholder="e.g., 10x10, 10 tabs, 10 caps"/>
-          </div>
-        </div>
-
-        <div class="two" style="margin-top:10px">
-          <div>
-            <label>MRP (₹)</label>
-            <input id="aMrp" type="number" min="0" step="0.01" placeholder="e.g., 170"/>
-          </div>
-          <div>
-            <label>Price (₹)</label>
-            <input id="aPrice" type="number" min="0" step="0.01" placeholder="e.g., 120"/>
-          </div>
-        </div>
-
-        <div class="two" style="margin-top:10px">
-          <div>
-            <label>Stock (Qty)</label>
-            <input id="aStock" type="number" min="0" step="1" placeholder="e.g., 50"/>
-          </div>
-          <div>
-            <label>SKU / Code (optional)</label>
-            <input id="aSku" type="text" placeholder="e.g., APL-LEV-MONT-10"/>
-          </div>
-        </div>
-
-        <div class="hr"></div>
-
-        <div class="row">
-          <button class="btn ok" id="btnAddMedicine">Add Medicine</button>
-          <button class="btn" id="btnResetAdminForm">Reset</button>
-          <button class="btn danger" id="btnResetDemo">Reset to Demo Data</button>
-        </div>
-
-        <div class="hr"></div>
-
-        <div style="overflow:auto">
-          <table class="table">
+        <div style="max-height:280px;overflow:auto;border-radius:12px;border:1px solid rgba(0,0,0,.08)">
+          <table>
             <thead>
               <tr>
-                <th style="min-width:220px">Medicine</th>
-                <th style="min-width:170px">Salt</th>
-                <th style="min-width:120px">Category</th>
-                <th style="min-width:90px">Pack</th>
-                <th style="min-width:110px">MRP</th>
-                <th style="min-width:110px">Price</th>
-                <th style="min-width:90px">Stock</th>
-                <th style="min-width:160px">Action</th>
+                <th style="width:50px">#</th>
+                <th>Brand</th>
+                <th style="width:140px">Doctor</th>
+                <th style="width:140px">Wholeseller</th>
+                <th style="width:140px">Retailer</th>
+                <th style="width:140px">Stockist</th>
+                <th style="width:120px">Available</th>
               </tr>
             </thead>
-            <tbody id="adminTbody"></tbody>
-          </table>
-        </div>
+            <tbody>
+      `;
 
-        <div class="footer-note">
+      MEDICINES.forEach((m, i) => {
+        const ps = (m.pricesByState && m.pricesByState[st]) ? m.pricesByState[st] : (m.prices || {});
+        const g = (v)=> (v===null||v===undefined||v==="") ? "" : Number(v);
+        html += `
+          <tr>
+            <td class="right">${i+1}</td>
+            <td>${escapeHtml(m.brand || "")}</td>
+            ${roleKeys.map(r => `
+              <td class="right">
+                <input type="number" step="0.01" data-a="p" data-i="${i}" data-r="${r}" value="${g(ps[r])}" style="max-width:120px">
+              </td>`).join("")}
+            <td>
+              <select data-a="avail" data-i="${i}">
+                <option value="true" ${m.available !== false ? "selected":""}>Yes</option>
+                <option value="false" ${m.available === false ? "selected":""}>No</option>
+              </select>
+            </td>
+          </tr>
+        `;
+      });
 
-<div class="hr"></div>
+      html += `</tbody></table></div>`;
+      wrap.innerHTML = html;
 
-<div class="hd" style="padding:0; border-bottom:none; margin-bottom:8px">
-  <h2 style="margin:0; font-size:15px">Orders (Live from Google Sheet)</h2>
-  <div class="right-actions">
-    <button class="btn small" id="btnRefreshOrders">Refresh Orders</button>
-    <button class="btn small" id="btnExportOrdersCsv">Export CSV</button>
+      // Bind save/reload
+      document.getElementById("btnSavePricing").onclick = async () => {
+        // 1) collect global discount
+        const d = Number(document.getElementById("adminGlobalDiscount").value || 0);
+        PRICING.globalDiscountPct = isFinite(d) ? d : 0;
+
+        // 2) collect prices for state
+        const st = adminStateCode();
+        const priceInputs = Array.from(wrap.querySelectorAll('input[data-a="p"]'));
+        priceInputs.forEach(inp => {
+          const i = Number(inp.dataset.i);
+          const r = inp.dataset.r;
+          const val = inp.value;
+          MEDICINES[i].pricesByState = MEDICINES[i].pricesByState || {};
+          MEDICINES[i].pricesByState[st] = MEDICINES[i].pricesByState[st] || {};
+          MEDICINES[i].pricesByState[st][r] = (val === "" ? null : Number(val));
+        });
+
+        // 3) availability
+        Array.from(wrap.querySelectorAll('select[data-a="avail"]')).forEach(sel => {
+          const i = Number(sel.dataset.i);
+          MEDICINES[i].available = (sel.value === "true");
+        });
+
+        try{
+          await savePricingToFirestore();
+          // Refresh UI
+          renderMedicineRows();
+          applyRoleAndStateFromLogin();
+          alert("Saved ✅");
+        }catch(e){
+          alert("Save failed: " + (e?.message || e));
+        }
+      };
+
+      document.getElementById("btnReloadPricing").onclick = async () => {
+        await loadPricingFromFirestore();
+        renderMedicineRows();
+        applyRoleAndStateFromLogin();
+        buildAdminPriceTable();
+      };
+    }
+
+    function renderMedicineRows() {
+      const tbody = $("medBody");
+      tbody.innerHTML = "";
+      MEDICINES.forEach((item, idx) => {
+        const keyRaw = `${item.brand} (${item.strength})`;
+        const key = escapeHtml(keyRaw);
+
+        // Availability (set available:false in MEDICINES to show Not Available)
+        const isNA = (item.available === false);
+        const qtyHtml = isNA
+          ? `<span class="na-text">Not Available</span>`
+          : `<input type="number" min="0" step="1" value="0" data-med="${key}" data-idx="${idx}" class="qty" style="max-width:110px">`;
+        const uomHtml = isNA
+          ? `<span class="na-text">—</span>`
+          : `<select class="uom" data-uom-med="${key}" style="max-width:140px">
+               <option value="Box">Box</option>
+               <option value="Strip">Strip</option>
+               <option value="Each">Each</option>
+             </select>`;
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${idx + 1}</td>
+          <td>${escapeHtml(item.brand)}</td>
+          <td>${escapeHtml(item.strength)}</td>
+          <td class="right price-cell" data-idx="${idx}">—</td>
+          <td class="right">
+            ${isNA ? `<span class="na-text">—</span>` : `<input type="number" value="0" data-idx="${idx}" class="disc" readonly style="max-width:110px;background:#f1f5f9;font-weight:700">`}
+          </td>
+          <td class="right final-price-cell" data-idx="${idx}">—</td>
+          <td class="right">${qtyHtml}</td>
+          <td class="right">${uomHtml}</td>
+`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function escapeHtml(str) {
+      return str.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
+    }
+
+
+
+// ---------- Role + State based Pricing & Discount ----------
+// NOTE: UI hiding is not security. For true protection of PTR/PTS, use backend/Firestore rules.
+const ROLE_LABEL = { doctor:"Doctor", wholeseller:"Wholeseller", retailer:"Retailer", stockist:"Stockist" };
+const BUSINESS_TO_ROLE = {
+  "Doctor":"doctor",
+  "Wholeseller":"wholeseller",
+  "Retailer":"retailer",
+  "Stockist":"stockist",
+  // optional mappings (keep your old options working)
+  "Distributor":"wholeseller",
+  "W/R":"retailer"
+};
+
+// Map common state names to codes used in price/discount tables
+const STATE_CODE = {
+  "gujarat":"GJ",
+  "rajasthan":"RJ",
+  "madhya pradesh":"MP",
+  "maharashtra":"MH",
+  "uttar pradesh":"UP",
+  "delhi":"DL",
+  "other":"OT",
+  "":""
+};
+
+function normalizeStateCode(val){
+  const k = String(val || "").trim().toLowerCase();
+  return STATE_CODE[k] || k.toUpperCase().slice(0,2);
+}
+
+function getStoredRole(email){
+  try { return localStorage.getItem("ahanitya_role_" + (email || "").toLowerCase()) || ""; }
+  catch(e){ return ""; }
+}
+function setStoredRole(email, roleKey){
+  try {
+    if(!email) return;
+    localStorage.setItem("ahanitya_role_" + email.toLowerCase(), roleKey || "");
+  } catch(e){}
+}
+function getStoredState(email){
+  try { return localStorage.getItem("ahanitya_state_" + (email || "").toLowerCase()) || ""; }
+  catch(e){ return ""; }
+}
+function setStoredState(email, stateCode){
+  try {
+    if(!email) return;
+    localStorage.setItem("ahanitya_state_" + email.toLowerCase(), stateCode || "");
+  } catch(e){}
+}
+
+function roleKeyFromBusiness(businessVal){
+  return BUSINESS_TO_ROLE[businessVal] || "";
+}
+
+// Price lookup priority:
+// 1) item.pricesByState?.[STATE]?.[ROLE]
+// 2) item.prices?.[ROLE]
+function getPriceFor(item, roleKey, stateCode){
+  if(!item || !roleKey) return null;
+  const st = stateCode || "";
+  const byState = item?.pricesByState?.[st]?.[roleKey];
+  if(byState !== null && byState !== undefined && byState !== "") return Number(byState);
+  const base = item?.prices?.[roleKey];
+  if(base !== null && base !== undefined && base !== "") return Number(base);
+  return null;
+}
+
+// Discount lookup priority:
+// 1) item.discountsByState?.[STATE]?.[ROLE]
+// 2) item.defaultDiscounts?.[ROLE]
+// 3) 0
+function getDefaultDiscountFor(item, roleKey, stateCode){
+  // If admin has set a global discount in Firestore, use it for everyone
+  if (PRICING && typeof PRICING.globalDiscountPct === "number") return Number(PRICING.globalDiscountPct);
+
+  // Otherwise fallback to (optional) state/role discount tables if you use them
+  if(!item || !roleKey) return 0;
+  const st = stateCode || "";
+  const d1 = item?.discountsByState?.[st]?.[roleKey];
+  if(d1 !== null && d1 !== undefined && d1 !== "") return Number(d1);
+  const d2 = item?.defaultDiscounts?.[roleKey];
+  if(d2 !== null && d2 !== undefined && d2 !== "") return Number(d2);
+  return 0;
+}
+
+let CURRENT_ROLE_KEY = "";
+let CURRENT_STATE_CODE = "";
+
+function applyPriceUI(roleKey, stateCode){
+  CURRENT_ROLE_KEY = roleKey || "";
+  CURRENT_STATE_CODE = stateCode || "";
+
+  const head = document.getElementById("priceHead");
+  if (head) {
+    const roleLabel = CURRENT_ROLE_KEY ? ("Price to " + (ROLE_LABEL[CURRENT_ROLE_KEY] || CURRENT_ROLE_KEY)) : "Price";
+    head.textContent = CURRENT_STATE_CODE ? (roleLabel + " (" + CURRENT_STATE_CODE + ")") : roleLabel;
+  }
+
+  // update all price cells
+  document.querySelectorAll(".price-cell").forEach(td => {
+    const idx = Number(td.getAttribute("data-idx"));
+    const item = MEDICINES[idx];
+    const val = getPriceFor(item, CURRENT_ROLE_KEY, CURRENT_STATE_CODE);
+    td.textContent = (val === null || !isFinite(val)) ? "—" : String(val.toFixed(2));
+  });
+
+  // apply default discounts (only if user hasn't manually edited)
+  document.querySelectorAll(".disc").forEach(inp => {
+    const idx = Number(inp.getAttribute("data-idx"));
+    const item = MEDICINES[idx];
+    const defD = getDefaultDiscountFor(item, CURRENT_ROLE_KEY, CURRENT_STATE_CODE);
+    inp.value = isFinite(defD) ? String(defD) : "0";
+  });
+
+  updateFinalPrices();
+}
+
+function updateFinalPrices(){
+  document.querySelectorAll(".final-price-cell").forEach(td => {
+    const idx = Number(td.getAttribute("data-idx"));
+    const item = MEDICINES[idx];
+
+    const base = getPriceFor(item, CURRENT_ROLE_KEY, CURRENT_STATE_CODE);
+    const discInp = document.querySelector('.disc[data-idx="'+idx+'"]');
+    const disc = discInp ? Number(discInp.value || 0) : 0;
+
+    if (base === null || !isFinite(base) || !CURRENT_ROLE_KEY) {
+      td.textContent = "—";
+      return;
+    }
+    const finalVal = Number(base) * (1 - (disc/100));
+    td.textContent = isFinite(finalVal) ? finalVal.toFixed(2) : "—";
+  });
+}
+
+
+function applyRoleAndStateFromLogin(){
+  const user = auth.currentUser;
+  const email = user?.email || "";
+
+  const businessSel = document.getElementById("custBusiness");
+  const stateSel = document.getElementById("custState");
+  if (!businessSel || !stateSel) return;
+
+  const savedRole = getStoredRole(email);
+  const savedState = getStoredState(email);
+
+  // Restore / lock business type for this login
+  if (savedRole) {
+    const businessName = Object.keys(BUSINESS_TO_ROLE).find(k => BUSINESS_TO_ROLE[k] === savedRole) || "";
+    if (businessName) businessSel.value = businessName;
+    businessSel.disabled = true;
+  } else {
+    businessSel.disabled = false;
+  }
+
+  // Restore state if saved
+  if (savedState) {
+    // try set by code -> name not stored; we store code, so we just keep select value if matches known states
+    const reverse = Object.entries(STATE_CODE).reduce((acc,[k,v]) => (acc[v]=k, acc), {});
+    const nameKey = reverse[savedState] || "";
+    if (nameKey) {
+      // convert key back to Title Case label in dropdown
+      const label = nameKey.split(" ").map(w => w.charAt(0).toUpperCase()+w.slice(1)).join(" ");
+      stateSel.value = label;
+    }
+  }
+
+  // If no state selected yet, default to Gujarat (can be changed anytime)
+  if (!stateSel.value) stateSel.value = "Gujarat";
+
+
+  const roleKey = savedRole || roleKeyFromBusiness(businessSel.value || "");
+  const stateCode = normalizeStateCode(stateSel.value || "");
+
+  if (roleKey) setStoredRole(email, roleKey);
+  if (stateCode) setStoredState(email, stateCode);
+
+  applyPriceUI(roleKey, stateCode);
+}
+
+// React to Business Type change (only when not locked)
+document.addEventListener("change", (e) => {
+  if (e.target && e.target.id === "custBusiness") {
+    const email = auth.currentUser?.email || "";
+    const roleKey = roleKeyFromBusiness(e.target.value || "");
+    const stateCode = normalizeStateCode(document.getElementById("custState")?.value || "");
+    if (roleKey) setStoredRole(email, roleKey);
+    applyPriceUI(roleKey, stateCode);
+  }
+});
+
+// React to State change
+document.addEventListener("change", (e) => {
+  if (e.target && e.target.id === "custState") {
+    const email = auth.currentUser?.email || "";
+    const stateCode = normalizeStateCode(e.target.value || "");
+    if (stateCode) setStoredState(email, stateCode);
+
+    const roleKey = getStoredRole(email) || roleKeyFromBusiness(document.getElementById("custBusiness")?.value || "");
+    applyPriceUI(roleKey, stateCode);
+  }
+});
+
+
+function getOrderItems() {
+      const qtyInputs = Array.from(document.querySelectorAll(".qty"));
+      const uomInputs = Array.from(document.querySelectorAll(".uom"));
+
+      // Build a map: medicine -> unit
+      const uomMap = new Map(
+        uomInputs.map(sel => [sel.getAttribute("data-uom-med"), sel.value])
+      );
+
+      const items = qtyInputs
+        .map(inp => {
+          const med = inp.getAttribute("data-med");
+          const idx = Number(inp.getAttribute("data-idx"));
+          const uom = uomMap.get(med) || "Box";
+
+          // role key (locked per login if saved)
+          const email = auth.currentUser?.email || "";
+          const roleKey = getStoredRole(email) || roleKeyFromBusiness(document.getElementById("custBusiness")?.value || "");
+          const stateCode = normalizeStateCode(document.getElementById("custState")?.value || "");
+          const base = getPriceFor(MEDICINES?.[idx], roleKey, stateCode);
+
+          const discInp = document.querySelector('.disc[data-idx="'+idx+'"]');
+          const discount_pct = discInp ? Number(discInp.value || 0) : 0;
+
+          const final_price = (base === null || !isFinite(base)) ? null : (Number(base) * (1 - discount_pct/100));
+
+          return {
+            med,
+            qty: Number(inp.value || 0),
+            uom,
+            unit_price: (base === null || !isFinite(base)) ? null : Number(base),
+            discount_pct,
+            final_price: (final_price === null || !isFinite(final_price)) ? null : Number(final_price.toFixed(2))
+          };
+        })
+        .filter(x => x.qty > 0);
+
+      return items;
+    }
+
+    function buildOrderText(payload) {
+      const lines = [];
+      lines.push("📦 *Ahanitya Order*");
+      lines.push("");
+      lines.push(`👤 Name: ${payload.customer_name}`);
+      lines.push(`📍 Address: ${payload.customer_address}`);
+      lines.push(`📧 Email: ${payload.customer_email}`);
+      lines.push(`📞 Contact: ${payload.customer_phone}`);
+      lines.push(`🏢 Business Type: ${payload.business_type || ""}`);
+      lines.push(`🗺️ State: ${payload.customer_state || ""} ${payload.state_code ? ("(" + payload.state_code + ")") : ""}`);
+      lines.push(`👥 Referred By: ${payload.referred_by}`);
+      if (payload.referred_by === "Yes") {
+        lines.push(`🙍 Referrer Name: ${payload.referrer_name}`);
+        lines.push(`🎓 Referrer Designation: ${payload.referrer_designation}`);
+        if (payload.referrer_email) {
+          lines.push(`📧 Referrer Email: ${payload.referrer_email}`);
+        }
+      }
+      lines.push("");
+      lines.push("💊 *Medicines Ordered:*");
+      payload.items.forEach((it, i) => {
+        const p = (it.unit_price === null || it.unit_price === undefined) ? "—" : ("₹"+Number(it.unit_price).toFixed(2));
+        const d = (it.discount_pct === null || it.discount_pct === undefined) ? "0" : String(it.discount_pct);
+        const fp = (it.final_price === null || it.final_price === undefined) ? "—" : ("₹"+Number(it.final_price).toFixed(2));
+        lines.push(`${i+1}. ${it.med} — Qty: ${it.qty} ${it.uom} — Price: ${p} — Disc: ${d}% — Final: ${fp}`);
+      });
+      lines.push("");
+      lines.push(`🗓 Date/Time: ${new Date().toLocaleString()}`);
+      return lines.join("\n");
+    }
+
+    // ---------- Auth ----------
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        hide($("authCard"));
+        show($("orderCard"));
+        $("who").textContent = user.email;
+
+        // Show admin panel (prices/discount editable) only for admin email
+        const ap = document.getElementById("adminPanel");
+        if (ap){
+          if (isAdminUser(user.email)) { ap.classList.remove("hide"); buildAdminPriceTable(); }
+          else { ap.classList.add("hide"); }
+        }
+
+        // Apply pricing column as per this login's saved category
+        applyRoleAndStateFromLogin();
+      } else {
+        show($("authCard"));
+        hide($("orderCard"));
+        $("who").textContent = "";
+        const ap = document.getElementById("adminPanel");
+        if (ap) ap.classList.add("hide");
+      }
+    });
+
+    $("btnLogin").addEventListener("click", async () => {
+      $("authStatus").textContent = "";
+      const email = $("loginEmail").value.trim();
+      const pass = $("loginPass").value.trim();
+      try {
+        await signInWithEmailAndPassword(auth, email, pass);
+        $("authStatus").textContent = "Logged in successfully ✅";
+        $("authStatus").className = "status ok";
+      } catch (e) {
+        $("authStatus").textContent = (e?.message || "Login failed");
+        $("authStatus").className = "status err";
+      }
+    });
+
+    $("btnSignup").addEventListener("click", async () => {
+      $("authStatus").textContent = "";
+      const email = $("loginEmail").value.trim();
+      const pass = $("loginPass").value.trim();
+      try {
+        await createUserWithEmailAndPassword(auth, email, pass);
+        $("authStatus").textContent = "Account created & logged in ✅";
+        $("authStatus").className = "status ok";
+      } catch (e) {
+        $("authStatus").textContent = (e?.message || "Sign-up failed");
+        $("authStatus").className = "status err";
+      }
+    });
+
+    $("btnLogout").addEventListener("click", async () => {
+      await signOut(auth);
+    });
+
+    // ---------- Submit Order ----------
+    $("btnSubmit").addEventListener("click", async () => {
+      $("orderStatus").textContent = "";
+
+      // Validate
+      const items = getOrderItems();
+      if (items.length === 0) {
+        $("orderStatus").textContent = "Please select at least 1 medicine with quantity.";
+        $("orderStatus").className = "status err";
+        return;
+      }
+
+      const payload = {
+        customer_name: $("custName").value.trim(),
+        customer_address: $("custAddress").value.trim(),
+        customer_email: $("custEmail").value.trim(),
+        customer_phone: $("custPhone").value.trim(),
+        receiver_email: RECEIVER_EMAIL,
+        items,
+        business_type: $("custBusiness") ? $("custBusiness").value.trim() : "",
+        customer_state: $("custState") ? $("custState").value.trim() : "",
+        state_code: normalizeStateCode($("custState") ? $("custState").value.trim() : ""),
+        referred_by: $("referredFlag") ? $("referredFlag").value : "No",
+        referrer_name: $("referrerName") ? $("referrerName").value.trim() : "",
+        referrer_designation: $("referrerDesignation") ? $("referrerDesignation").value.trim() : "",
+        referrer_email: $("referrerEmail") ? $("referrerEmail").value.trim() : "",
+      };
+
+      if (!payload.customer_name || !payload.customer_address || !payload.customer_email || !payload.customer_phone || !payload.business_type) {
+        $("orderStatus").textContent = "Please fill Name, Address, Email, Contact No and Business Type.";
+        $("orderStatus").className = "status err";
+        return;
+      }
+
+      const orderText = buildOrderText(payload);
+
+      // 1) Send Email via EmailJS
+      try {
+        await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+          // IMPORTANT: Your EmailJS template "To Email" should be set to {{to_email}} OR fixed to the receiver.
+          // We pass to_email here to avoid "recipient address is empty".
+          to_email: RECEIVER_EMAIL,
+
+          // These keys MUST match your EmailJS template variables like:
+          // {{customer_name}}, {{customer_email}}, {{customer_phone}}, {{customer_address}}, {{order_details}}
+          customer_name: payload.customer_name,
+          customer_email: payload.customer_email,
+          customer_phone: payload.customer_phone,
+          customer_address: payload.customer_address,
+          order_details: orderText,
+          business_type: payload.business_type
+        });
+
+        // 2) Open WhatsApp with prefilled message
+        const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(orderText)}`;
+        window.open(waUrl, "_blank", "noopener,noreferrer");
+
+        $("orderStatus").textContent = "Order submitted ✅ Email sent + WhatsApp opened.";
+        $("orderStatus").className = "status ok";
+
+      } catch (e) {
+        $("orderStatus").textContent = "Email sending failed: " + (e?.text || e?.message || "Unknown error") + " (check EmailJS service/template & Gmail permission).";
+        $("orderStatus").className = "status err";
+        console.error(e);
+      }
+    });
+
+    // Init page
+    (async ()=>{
+      await loadPricingFromFirestore();
+      renderMedicineRows();
+      // If user is already logged in and role exists, apply immediately
+      applyRoleAndStateFromLogin();
+    })();
+
+    // Top submit button triggers same action
+    const btnSubmitTop = document.getElementById("btnSubmitTop");
+    if (btnSubmitTop) {
+      btnSubmitTop.addEventListener("click", () => {
+        document.getElementById("btnSubmit").click();
+      });
+    }
+
+
+    const referredFlag = document.getElementById("referredFlag");
+    const ref1 = document.getElementById("referrerFields");
+    const ref2 = document.getElementById("referrerFields2");
+    const ref3 = document.getElementById("referrerFields3"); // optional (if present)
+
+    if (referredFlag) {
+      const toggleRef = () => {
+        const on = referredFlag.value === "Yes";
+        if (ref1) ref1.style.display = on ? "block" : "none";
+        if (ref2) ref2.style.display = on ? "block" : "none";
+        if (ref3) ref3.style.display = on ? "block" : "none";
+      };
+      referredFlag.addEventListener("change", toggleRef);
+      toggleRef();
+    }
+      });
+    }
+
+    $("custEmail").addEventListener("focus", () => {
+      // auto-fill customer email from logged-in user (optional)
+      const user = auth.currentUser;
+      if (user && !$("custEmail").value) $("custEmail").value = user.email || "";
+    });
+
+  </script>
+</head>
+
+<body>
+  <div class="wrap">
+
+    <!-- Logo Display Card -->
+<div class="card logo-card" style="margin-bottom:14px; text-align:center; padding:15px;">
+
+  <div style="display:flex; justify-content:center; align-items:flex-start; gap:25px; flex-wrap:nowrap;">
+
+    <!-- Ahanitya Logo -->
+    <div style="display:flex; flex-direction:column; align-items:center; justify-content:flex-start;">
+      <img src="images/without BG.png"
+           alt="Ahanitya Pharma Life Science LLP"
+           style="height:100px;">
+      <p style="margin:8px 0 0 0; font-weight:600; color:#11799A; white-space:nowrap;">
+        Ahanitya Pharma Life Science LLP
+      </p>
+    </div>
+
+    <!-- Divider Line -->
+    <div style="width:1px; height:60px; background:#ccc;"></div>
+
+    <!-- Associate Sales Channel Partner Logo -->
+    <div style="display:flex; flex-direction:column; align-items:center; justify-content:flex-start;">
+      <img src="images/SBT.png"
+           alt="Associate Sales Channel Partner"
+           style="height:100px;">
+      <p style="margin:8px 0 0 0; font-weight:600; color:#444; white-space:nowrap;">
+        In association with Sales Channel Partner
+      </p>
+    </div>
+
   </div>
 </div>
 
-<div style="overflow:auto">
-  <table class="table">
-    <thead>
-      <tr>
-        <th style="min-width:160px">Order ID</th>
-        <th style="min-width:150px">Date/Time</th>
-        <th style="min-width:110px">Type</th>
-        <th style="min-width:170px">Name</th>
-        <th style="min-width:130px">Phone</th>
-        <th style="min-width:200px">Email</th>
-        <th style="min-width:110px">Total Qty</th>
-        <th style="min-width:130px">Approx Total</th>
-        <th style="min-width:260px">Remarks</th>
-        <th style="min-width:120px">Items</th>
-      </tr>
-    </thead>
-    <tbody id="ordersTbody"></tbody>
-  </table>
+
+    <div class="card" style="margin-bottom:14px">
+      <h1>Ahanitya Pharma Order Portal</h1>
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <div class="muted">
+          Status: <span class="pill" id="who">Not logged in</span>
+        </div>
+        <button class="btn btn-ghost btn-toggle" id="btnTheme" type="button">Dark Mode</button>
+        <button class="btn btn-ghost" id="btnLogout">Logout</button>
+      </div>
+    </div>
+
+    <!-- AUTH -->
+    <div class="card" id="authCard">
+      <h2>Login / Create Account</h2>
+      <div class="grid grid-2">
+        <div>
+          <label>Email</label>
+          <input id="loginEmail" type="email" placeholder="yourname@email.com" />
+        </div>
+        <div>
+          <label>Password</label>
+          <input id="loginPass" type="password" placeholder="Min 6 characters" />
+        </div>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn btn-primary" id="btnLogin">Login</button>
+        <button class="btn btn-ghost" id="btnSignup">Create Account</button>
+      </div>
+      <div class="status" id="authStatus"></div>
+
+      <div class="note" style="margin-top:12px">
+      <!--  You must add Firebase config + EmailJS keys inside the code. -->
+      </div>
+    </div>
+
+    <!-- ORDER -->
+    <div class="card hide" id="orderCard">
+      <h2>Order Details</h2>
+
+      <div class="grid grid-2">
+        <div>
+          <label>Name</label>
+          <input id="custName" type="text" placeholder="Full Name" />
+        </div>
+        <div>
+          <label>Contact No</label>
+          <input id="custPhone" type="tel" placeholder="+91 XXXXX XXXXX" />
+        </div>
+        <div>
+          <label>Mail ID</label>
+          <input id="custEmail" type="email" placeholder="Customer email" />
+        </div>
+        <div>
+          <label>Business Type</label>
+          <select id="custBusiness">
+            <option value="" selected disabled>Select business type</option>
+            <option>Doctor</option>
+            <option>Wholeseller</option>
+            <option>Distributor</option>
+            <option>Stockist</option>
+            <option>Retailer</option>
+            <option>W/R</option>
+          </select>
+        </div>
+
+        <div>
+          <label>State</label>
+          <select id="custState">
+            <option value="" selected disabled>Select state</option>
+            <option>Gujarat</option>
+            <option>Rajasthan</option>
+            <option>Madhya Pradesh</option>
+            <option>Maharashtra</option>
+            <option>Uttar Pradesh</option>
+            <option>Delhi</option>
+            <option>Other</option>
+          </select>
+          <div class="muted" style="margin-top:6px">Pricing/discount will auto-adjust based on State + Business Type.</div>
+        </div>
+        <div>
+          <label>Referred By</label>
+          <select id="referredFlag">
+            <option value="No" selected>No</option>
+            <option value="Yes">Yes</option>
+          </select>
+        </div>
+        <div id="referrerFields" style="display:none;">
+          <label>Referrer Name</label>
+          <input id="referrerName" type="text" placeholder="Referrer full name" />
+        </div>
+        <div id="referrerFields2" style="display:none;">
+          <label>Referrer Designation</label>
+          <input id="referrerDesignation" type="text" placeholder="Doctor / MR / Distributor etc." />
+        </div>
+
+        <div>
+          <label>Address</label>
+          <input id="custAddress" type="text" placeholder="Full delivery address" />
+        </div>
+      </div>
+
+      <div id="medSection" style="margin-top:14px">
+        <h2 style="margin-bottom:10px">Select Medicines & Quantity</h2>
+
+      <div class="row" style="margin-bottom:14px">
+        <button class="btn btn-primary" id="btnSubmitTop">Submit Order (Email + WhatsApp)</button>
+        <button class="btn btn-danger" onclick="location.reload()">Reset</button>
+      </div>
+
+        <div class="medScroll">
+<table>
+          <thead>
+            <tr>
+              <th>Sr No</th>
+              <th>Brand Name</th>
+              <th>Strength</th>
+              <th class="right" id="priceHead">Price</th>
+              <th class="right">Discount %</th>
+              <th class="right">Final Price (₹)</th>
+              <th class="right">Quantity</th>
+              <th class="right">Measurement</th>
+            </tr>
+          </thead>
+          <tbody id="medBody"></tbody>
+        </table>
+        <div class="muted" style="margin-top:8px">Set quantity 0 for items not required.</div>
 </div>
+      </div>
 
-<div class="footer-note muted">
-  Note: For this to work, add <b>action=listOrders</b> in your Apps Script (code provided below).
-</div>
-
-        <div class="footer-note">
-          Admin Login default: <b>ahanityapharmasuppliesllp@gmail.com</b> / <b>Admin@123</b> (you can change inside code).
+      <!-- Admin Panel (visible only to admin login) -->
+      <div id="adminPanel" class="note hide" style="margin-top:14px">
+        <div id="adminTableWrap"></div>
+        <div class="muted" style="margin-top:8px">
+          Note: To make this truly admin-only, add Firestore Security Rules so only admin can write <b>config/pricing_v1</b>.
         </div>
       </div>
-    </section>
 
-    <!-- ADMIN LOGIN -->
-    <section class="card hidden" id="adminLoginCard" style="margin-top:16px">
-      <div class="hd">
-        <h2>Admin Login</h2>
-        <div class="right-actions">
-          <button class="btn small" id="btnCloseAdminLogin">Close</button>
-        </div>
+      <div class="row" style="margin-top:14px">
+        <button class="btn btn-primary" id="btnSubmit">Submit Order (Email + WhatsApp)</button>
+        <button class="btn btn-danger" onclick="location.reload()">Reset</button>
       </div>
-      <div class="bd">
-        <div class="two">
-          <div>
-            <label>Admin Email</label>
-            <input id="adEmail" type="email" placeholder="admin email"/>
-          </div>
-          <div>
-            <label>Password</label>
-            <input id="adPass" type="password" placeholder="password"/>
-          </div>
-        </div>
 
-        <div class="hr"></div>
-        <button class="btn primary" id="btnAdminLogin">Login as Admin</button>
-        <div class="footer-note muted">
-          Security note: This is a static site. Admin password is checked in browser code. For real security, use backend authentication.
-        </div>
+      <div class="status" id="orderStatus"></div>
+
+      <div class="note" style="margin-top:12px">
+        Orders will be emailed to <b>infoahanityapharmalifescellp@gmail.com</b> and also shared on WhatsApp to <b>+91 8487090212</b>.
+        <p><strong>*</strong>Orders placed on or before 18:00 hrs (6:00 PM) will be processed and delivered on the same day, subject to stock availability and serviceable location.</p>
+        <p><strong>*</strong>Orders placed after 18:00 hrs will be delivered on the next day, as early as possible. </p>
+        <p><strong>*</strong>We accept and deliver orders on Sundays and public holidays as well. Same-day delivery applies for orders placed before 18:00 hrs, subject to availability.</p>
+        <p><strong>*</strong>Bulk Order placed After 18:00 hrs will be delivered next day as early as possible. </p>
+        <p><strong>*</strong>Emergency requirements may be accommodated on a priority basis (subject to availability).</p>
+        <p><strong>*</strong>Same-day delivery is subject to product stock availability. In case of stock shortage, the customer will be informed immediately.</p>
+        <p><strong>*</strong>Order changes or cancellations must be communicated before dispatch confirmation.</p>
+        
       </div>
-    </section>
-
+    </div>
   </div>
-</main>
 
 <script>
-/* =========================
-   CONFIG
-========================= */
-const API_URL ="https://script.google.com/macros/s/AKfycbzkjrJqwK5U3dHqYg0TVKj_awgIuVao7RpI36TFC2CTU3ftoex0tEXv65w1gq-ze6IW/exec";
-const ORDER_EMAIL_TO = "ahanityapharmasuppliesllp@gmail.com";
-const ADMIN_EMAIL = "ahanityapharmasuppliesllp@gmail.com";
-const ADMIN_PASSWORD = "Admin@123"; // change if you want
-
-
-/* =========================
-   GOOGLE SHEETS API
-========================= */
-async function apiGetInventory(){
-  // GET usually works fine with Apps Script web apps
-  const res = await fetch(`${API_URL}?action=listInventory`, { cache: "no-store" });
-  const data = await res.json();
-  if(!data.ok) throw new Error(data.error || "Failed to load inventory");
-  return data.inventory || [];
-}
-
-async function apiUpsertInventory(item){
-  // IMPORTANT: Do NOT set Content-Type header (avoids CORS preflight on GitHub Pages)
-  const res = await fetch(API_URL, {
-    method: "POST",
-    body: JSON.stringify({ action:"upsertInventory", item })
-  });
-  const data = await res.json();
-  if(!data.ok) throw new Error(data.error || "Failed to save item");
-  return data;
-}
-
-async function apiDeleteInventory(id){
-  // IMPORTANT: Do NOT set Content-Type header (avoids CORS preflight)
-  const res = await fetch(API_URL, {
-    method: "POST",
-    body: JSON.stringify({ action:"deleteInventory", id })
-  });
-  const data = await res.json();
-  if(!data.ok) throw new Error(data.error || "Failed to delete item");
-  return data;
-}
-
-async function apiGetOrders(limit=100){
-  const res = await fetch(`${API_URL}?action=listOrders&limit=${encodeURIComponent(limit)}`);
-  const data = await res.json();
-  if(!data.ok) throw new Error(data.error || "Failed to load orders");
-  return data.orders || [];
-}
-
-async function apiPlaceOrder(order){
-  // IMPORTANT: Do NOT set Content-Type header (avoids CORS preflight)
-  const res = await fetch(API_URL, {
-    method: "POST",
-    body: JSON.stringify({ action:"placeOrder", order })
-  });
-  const data = await res.json();
-  if(!data.ok) throw new Error(data.error || "Failed to place order");
-  return data;
-}
-
-/* =========================
-   STORAGE KEYS
-========================= */
-const KEY_USER = "aplsl_user_v1";
-const KEY_ADMIN = "aplsl_admin_logged_v1";
-const KEY_INV = "aplsl_inventory_v1";
-const KEY_CART = "aplsl_cart_v1";
-const KEY_LAST_ORDER = "aplsl_last_order_v1"; // stores last confirmed order for sharing
-
-/* =========================
-   DEMO INVENTORY (fallback)
-========================= */
-const DEMO = [
-  { id: uid(), name:"Montelukast + Levocetirizine", salt:"Montelukast Sodium 10mg + Levocetirizine 5mg", category:"Anti-allergic", pack:"10 Tabs", mrp:170, price:120, stock:50, sku:"APL-ML-10" },
-  { id: uid(), name:"Pantoprazole", salt:"Pantoprazole 40mg", category:"Gastro", pack:"10 Tabs", mrp:110, price:78, stock:80, sku:"APL-PANTO-40" },
-  { id: uid(), name:"Vitamin D3", salt:"Cholecalciferol 60,000 IU", category:"Supplement", pack:"4 Caps", mrp:140, price:98, stock:40, sku:"APL-D3-60K" }
-];
-
-/* =========================
-   HELPERS
-========================= */
-function uid(){ return "id_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16); }
-function inr(n){
-  const x = Number(n||0);
-  return "₹" + x.toLocaleString("en-IN", {maximumFractionDigits:2, minimumFractionDigits:0});
-}
-function getLS(key, fallback){
-  try{
-    const v = localStorage.getItem(key);
-    return v ? JSON.parse(v) : fallback;
-  }catch(e){ return fallback; }
-}
-function setLS(key, value){
-  localStorage.setItem(key, JSON.stringify(value));
-}
-function escapeTxt(s){
-  return String(s||"").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
-}
-function nowStamp(){
-  const d = new Date();
-  const pad = n => String(n).padStart(2,"0");
-  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-/* =========================
-   STATE
-========================= */
-let user = getLS(KEY_USER, null);           // {name,type,email,phone}
-let adminLogged = getLS(KEY_ADMIN, false);  // bool
-let inventory = getLS(KEY_INV, null);
-let cart = getLS(KEY_CART, {});             // { [id]: qty }
-
-/* Init inventory from Google Sheets */
-async function boot(){
-  try{
-    inventory = await apiGetInventory();
-    renderAll();
-  }catch(e){
-    if(String(API_URL||"").trim().endsWith("/dev")){
-      alert("API_URL ends with /dev. Please use the deployed Web App /exec URL (Deploy → Manage deployments → Web app → Copy /exec).");
-    }
-    alert("Inventory load error: " + e.message);
-    inventory = DEMO;
-    renderAll();
-  }
-}
-boot();
-
-/* =========================
-   DOM
-========================= */
-const whoPill = document.getElementById("whoPill");
-const btnLogout = document.getElementById("btnLogout");
-
-const userLoginCard = document.getElementById("userLoginCard");
-const adminLoginCard = document.getElementById("adminLoginCard");
-const adminCard = document.getElementById("adminCard");
-
-const btnOpenUserLogin = document.getElementById("btnOpenUserLogin");
-const btnCloseUserLogin = document.getElementById("btnCloseUserLogin");
-const btnUserLogin = document.getElementById("btnUserLogin");
-
-const btnOpenAdminLogin = document.getElementById("btnOpenAdminLogin");
-const btnCloseAdminLogin = document.getElementById("btnCloseAdminLogin");
-const btnAdminLogin = document.getElementById("btnAdminLogin");
-const btnCloseAdmin = document.getElementById("btnCloseAdmin");
-const adminEmailShow = document.getElementById("adminEmailShow");
-
-const searchBox = document.getElementById("searchBox");
-const sortBy = document.getElementById("sortBy");
-const invTbody = document.getElementById("invTbody");
-
-const cartEmpty = document.getElementById("cartEmpty");
-const cartList = document.getElementById("cartList");
-const kpiItems = document.getElementById("kpiItems");
-const kpiQty = document.getElementById("kpiQty");
-const kpiTotal = document.getElementById("kpiTotal");
-const remarks = document.getElementById("remarks");
-const btnShareWhatsApp = document.getElementById("btnShareWhatsApp");
-const btnSendEmail = document.getElementById("btnSendEmail");
-const btnClearCart = document.getElementById("btnClearCart");
-
-/* Admin form */
-const aName = document.getElementById("aName");
-const aSalt = document.getElementById("aSalt");
-const aCat = document.getElementById("aCat");
-const aPack = document.getElementById("aPack");
-const aMrp = document.getElementById("aMrp");
-const aPrice = document.getElementById("aPrice");
-const aStock = document.getElementById("aStock");
-const aSku = document.getElementById("aSku");
-const btnAddMedicine = document.getElementById("btnAddMedicine");
-const btnResetAdminForm = document.getElementById("btnResetAdminForm");
-const btnResetDemo = document.getElementById("btnResetDemo");
-const adminTbody = document.getElementById("adminTbody");
-
-/* Login inputs */
-const uName = document.getElementById("uName");
-const uType = document.getElementById("uType");
-const uEmail = document.getElementById("uEmail");
-const uPhone = document.getElementById("uPhone");
-const adEmail = document.getElementById("adEmail");
-const adPass = document.getElementById("adPass");
-
-/* =========================
-   UI VISIBILITY
-========================= */
-function refreshTopPill(){
-  if(adminLogged){
-    whoPill.textContent = "Admin logged in";
-    btnLogout.classList.remove("hidden");
-  } else if(user){
-    whoPill.textContent = `${user.type}: ${user.name} (${user.phone})`;
-    btnLogout.classList.remove("hidden");
-  } else {
-    whoPill.textContent = "Not logged in";
-    btnLogout.classList.add("hidden");
-  }
-}
-function showUserLogin(show){
-  userLoginCard.classList.toggle("hidden", !show);
-}
-function showAdminLogin(show){
-  adminLoginCard.classList.toggle("hidden", !show);
-}
-function showAdminPanel(show){
-  adminCard.classList.toggle("hidden", !show);
-}
-function toast(msg){
-  alert(msg);
-}
-
-/* =========================
-   INVENTORY RENDER
-========================= */
-function filteredInventory(){
-  const q = (searchBox.value || "").trim().toLowerCase();
-  let arr = [...inventory];
-
-  if(q){
-    arr = arr.filter(m =>
-      (m.name||"").toLowerCase().includes(q) ||
-      (m.salt||"").toLowerCase().includes(q) ||
-      (m.category||"").toLowerCase().includes(q) ||
-      (m.sku||"").toLowerCase().includes(q)
-    );
-  }
-
-  const s = sortBy.value;
-  if(s === "name") arr.sort((a,b)=> (a.name||"").localeCompare(b.name||""));
-  if(s === "priceAsc") arr.sort((a,b)=> Number(a.price||0)-Number(b.price||0));
-  if(s === "priceDesc") arr.sort((a,b)=> Number(b.price||0)-Number(a.price||0));
-  if(s === "stockDesc") arr.sort((a,b)=> Number(b.stock||0)-Number(a.stock||0));
-
-  return arr;
-}
-
-function renderInventory(){
-  const arr = filteredInventory();
-  invTbody.innerHTML = arr.map(m=>{
-    const qty = Number(cart[m.id]||0);
-    const out = Number(m.stock||0) <= 0;
-    return `
-      <tr>
-        <td>
-          <div style="font-weight:900">${escapeTxt(m.name||"")}</div>
-          <div class="muted" style="font-size:12px">${escapeTxt(m.salt||"")}</div>
-          <div style="margin-top:6px; display:flex; gap:8px; flex-wrap:wrap">
-            <span class="badge">${escapeTxt(m.category||"NA")}</span>
-            <span class="badge">Pack: ${escapeTxt(m.pack||"NA")}</span>
-            ${m.sku ? `<span class="badge">SKU: ${escapeTxt(m.sku)}</span>` : ``}
-          </div>
-        </td>
-        <td>${inr(m.mrp||0)}</td>
-        <td><b>${inr(m.price||0)}</b></td>
-        <td>${out ? `<span class="badge" style="border-color:rgba(239,68,68,.4); color:#b91c1c">Out</span>` : `<span class="badge">${Number(m.stock||0)}</span>`}</td>
-        <td>
-          <div class="qtybox">
-            <button class="btn small" ${(!user || adminLogged) ? "disabled" : ""} onclick="decQty('${m.id}')">-</button>
-            <div class="qty">${qty}</div>
-            <button class="btn small" ${(!user || adminLogged || out) ? "disabled" : ""} onclick="incQty('${m.id}')">+</button>
-          </div>
-          <div class="muted" style="font-size:11px; margin-top:6px">
-            ${!user ? "Login as user to add" : (adminLogged ? "Logout admin to order" : (out ? "No stock available" : "Add/remove quantity"))}
-          </div>
-        </td>
-      </tr>
-    `;
-  }).join("");
-}
-
-/* =========================
-   CART ACTIONS
-========================= */
-function incQty(id){
-  const m = inventory.find(x=>x.id===id);
-  if(!m) return;
-  const current = Number(cart[id]||0);
-  const stock = Number(m.stock||0);
-  if(current >= stock){
-    toast("Cannot add more than available stock.");
-    return;
-  }
-  cart[id] = current + 1;
-  setLS(KEY_CART, cart);
-  renderAll();
-}
-function decQty(id){
-  const current = Number(cart[id]||0);
-  if(current <= 0) return;
-  cart[id] = current - 1;
-  if(cart[id] <= 0) delete cart[id];
-  setLS(KEY_CART, cart);
-  renderAll();
-}
-function clearCart(){
-  cart = {};
-  setLS(KEY_CART, cart);
-  renderAll();
-}
-
-/* =========================
-   CART RENDER + KPIs
-========================= */
-function cartItems(){
-  const items = [];
-  for(const id in cart){
-    const qty = Number(cart[id]||0);
-    const m = inventory.find(x=>x.id===id);
-    if(m && qty>0){
-      items.push({ ...m, qty, lineTotal: qty * Number(m.price||0) });
-    }
-  }
-  return items;
-}
-function renderCart(){
-  const items = cartItems();
-  cartEmpty.classList.toggle("hidden", items.length !== 0);
-
-  const totalQty = items.reduce((a,b)=>a + b.qty, 0);
-  const total = items.reduce((a,b)=>a + b.lineTotal, 0);
-
-  kpiItems.textContent = String(items.length);
-  kpiQty.textContent = String(totalQty);
-  kpiTotal.textContent = inr(total);
-
-  if(items.length === 0){
-    cartList.innerHTML = "";
-    return;
-  }
-
-  cartList.innerHTML = `
-    <div style="display:grid; gap:10px">
-      ${items.map(it=>`
-        <div style="border:1px solid var(--border); border-radius:16px; padding:12px; background:#fff">
-          <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start">
-            <div>
-              <div style="font-weight:900">${escapeTxt(it.name)}</div>
-              <div class="muted" style="font-size:12px">${escapeTxt(it.salt||"")}</div>
-              <div style="margin-top:6px; display:flex; gap:8px; flex-wrap:wrap">
-                <span class="badge">${escapeTxt(it.category||"NA")}</span>
-                <span class="badge">Price: ${inr(it.price||0)}</span>
-                <span class="badge">MRP: ${inr(it.mrp||0)}</span>
-              </div>
-            </div>
-            <div style="text-align:right">
-              <div class="muted" style="font-size:12px">Line Total</div>
-              <div style="font-size:16px; font-weight:1000">${inr(it.lineTotal)}</div>
-            </div>
-          </div>
-
-          <div style="margin-top:10px; display:flex; justify-content:space-between; gap:10px; align-items:center; flex-wrap:wrap">
-            <div class="qtybox">
-              <button class="btn small" onclick="decQty('${it.id}')">-</button>
-              <div class="qty">${it.qty}</div>
-              <button class="btn small" onclick="incQty('${it.id}')">+</button>
-              <span class="muted" style="font-size:12px">In stock: ${Number(it.stock||0)}</span>
-            </div>
-            <button class="btn small danger" onclick="removeItem('${it.id}')">Remove</button>
-          </div>
-        </div>
-      `).join("")}
-    </div>
-  `;
-}
-function removeItem(id){
-  delete cart[id];
-  setLS(KEY_CART, cart);
-  renderAll();
-}
-
-/* =========================
-   ORDER MESSAGE
-========================= */
-function buildOrderText(){
-  const items = cartItems();
-  if(!user) return null;
-  if(items.length === 0) return null;
-
-  const totalQty = items.reduce((a,b)=>a + b.qty, 0);
-  const total = items.reduce((a,b)=>a + b.lineTotal, 0);
-
-  let lines = [];
-  lines.push("AHANITYA PHARMA SUPPLIES LLP - ORDER");
-  lines.push("--------------------------------------------------");
-  lines.push(`Date/Time: ${nowStamp()}`);
-  lines.push(`Customer Type: ${user.type}`);
-  lines.push(`Name: ${user.name}`);
-  lines.push(`Phone: ${user.phone}`);
-  lines.push(`Email: ${user.email}`);
-  lines.push("--------------------------------------------------");
-  lines.push("Items:");
-  items.forEach((it, idx)=>{
-    lines.push(`${idx+1}) ${it.name} | ${it.pack || "Pack NA"} | Qty: ${it.qty} | Price: ${inr(it.price)} | Line: ${inr(it.lineTotal)}`);
-  });
-  lines.push("--------------------------------------------------");
-  lines.push(`Total Items: ${items.length}`);
-  lines.push(`Total Qty: ${totalQty}`);
-  lines.push(`Approx Total: ${inr(total)}`);
-  const rem = (remarks.value || "").trim();
-  if(rem){
-    lines.push("--------------------------------------------------");
-    lines.push(`Remarks: ${rem}`);
-  }
-  lines.push("--------------------------------------------------");
-  lines.push("Please confirm availability, dispatch timeline, and billing details.");
-    return lines.join("\n");
-}
-
-/* =========================
-   ORDER SAVE + STOCK REDUCTION (GOOGLE SHEET)
-========================= */
-async function finalizeOrderInSheet(){
-  // SERVER-SIDE: Apps Script will validate stock, save order, and reduce stock atomically.
-  const items = cartItems().map(it => ({
-    id: it.id,
-    name: it.name,
-    salt: it.salt || "",
-    category: it.category || "",
-    pack: it.pack || "",
-    mrp: Number(it.mrp || 0),
-    price: Number(it.price || 0),
-    qty: Number(it.qty || 0)
-  }));
-
-  const totalQty = items.reduce((a,b)=>a + b.qty, 0);
-  const approxTotal = items.reduce((a,b)=>a + (b.qty * Number(b.price||0)), 0);
-
-  // Save order (server will reduce stock)
-  const order = {
-    userType: user.type,
-    name: user.name,
-    phone: user.phone,
-    email: user.email,
-    items,
-    totalQty,
-    approxTotal,
-    remarks: (remarks.value || "").trim()
+(function(){
+  const KEY = "ahanitya_theme";
+  const apply = (t) => {
+    document.body.setAttribute("data-theme", t);
+    const btn = document.getElementById("btnTheme");
+    if (btn) btn.textContent = (t === "dark") ? "Light Mode" : "Dark Mode";
   };
 
-  const saved = await apiPlaceOrder(order);
-  const orderId = saved.orderId || "";
+  // init
+  const saved = localStorage.getItem(KEY);
+  apply(saved === "dark" ? "dark" : "light");
 
-  // Save last confirmed order for sharing
-  const lastOrder = {
-    orderId,
-    savedAt: nowStamp(),
-    user: { ...user },
-    items,
-    totalQty,
-    approxTotal,
-    remarks: (remarks.value || "").trim(),
-    message: (buildOrderText() || "") + `
-
-Order ID: ${orderId}`
-  };
-  setLS(KEY_LAST_ORDER, lastOrder);
-
-  // Refresh inventory in UI after server stock reduction
-  inventory = await apiGetInventory();
-  renderAll();
-
-  // Clear cart after confirmation
-  clearCart();
-
-  return { orderId, items, totalQty, approxTotal };
-}
-
-async function confirmAndFinalize(){
-  // One-click confirmation step
-  return confirm("Confirm order? This will save order in Google Sheet and reduce stock.") 
-    ? await finalizeOrderInSheet()
-    : null;
-}
-
-/* =========================
-   SHARE ACTIONS
-========================= */
-function ensureUserReady(){
-  if(adminLogged){
-    toast("You are logged in as Admin. Please logout admin to place order as user.");
-    return false;
-  }
-  if(!user){
-    toast("Please login as Doctor/Retailer/Wholesaler first.");
-    showUserLogin(true);
-    return false;
-  }
-  if(cartItems().length === 0){
-    toast("Cart is empty. Please add medicines first.");
-    return false;
-  }
-  return true;
-}
-
-function shareWhatsApp(){
-  // Share ONLY the last confirmed order (does not change stock)
-  const last = getLS(KEY_LAST_ORDER, null);
-  if(!last || !last.message){
-    alert("No confirmed order found. Please click 'Confirm Order' first.");
-    return;
-  }
-  const url = "https://wa.me/?text=" + encodeURIComponent(last.message);
-  window.open(url, "_blank");
-}
-
-function sendEmail(){
-  // Email ONLY the last confirmed order (does not change stock)
-  const last = getLS(KEY_LAST_ORDER, null);
-  if(!last || !last.message){
-    alert("No confirmed order found. Please click 'Confirm Order' first.");
-    return;
-  }
-  const subject = `Order - ${last.user?.type || ""} - ${last.user?.name || ""} - ${last.orderId || ""}`;
-  const mailto = `mailto:${ORDER_EMAIL_TO}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(last.message)}`;
-  window.location.href = mailto;
-}
-
-/* =========================
-   ADMIN CRUD
-========================= */
-function resetAdminForm(){
-  aName.value = "";
-  aSalt.value = "";
-  aCat.value = "";
-  aPack.value = "";
-  aMrp.value = "";
-  aPrice.value = "";
-  aStock.value = "";
-  aSku.value = "";
-}
-function addMedicine(){
-  const name = (aName.value||"").trim();
-  const salt = (aSalt.value||"").trim();
-  const cat  = (aCat.value||"").trim();
-  const pack = (aPack.value||"").trim();
-  const mrp  = Number(aMrp.value||0);
-  const price= Number(aPrice.value||0);
-  const stock= Math.max(0, parseInt(aStock.value||"0",10) || 0);
-  const sku  = (aSku.value||"").trim();
-
-  if(!name){
-    toast("Medicine name is required.");
-    return;
-  }
-  inventory.unshift({ id: uid(), name, salt, category: cat, pack, mrp, price, stock, sku });
-  setLS(KEY_INV, inventory);
-  resetAdminForm();
-  renderAll();
-}
-
-function updateMedicine(id, field, value){
-  const idx = inventory.findIndex(x=>x.id===id);
-  if(idx < 0) return;
-  const m = inventory[idx];
-
-  if(field === "mrp" || field === "price"){
-    m[field] = Number(value||0);
-  } else if(field === "stock"){
-    m[field] = Math.max(0, parseInt(value||"0",10) || 0);
-    // If cart qty exceeds new stock, adjust cart
-    const q = Number(cart[id]||0);
-    if(q > m.stock){
-      cart[id] = m.stock;
-      if(cart[id] <= 0) delete cart[id];
-      setLS(KEY_CART, cart);
+  // bind (button exists even when logged out)
+  document.addEventListener("click", (e) => {
+    if (e.target && e.target.id === "btnTheme") {
+      const cur = document.body.getAttribute("data-theme") === "dark" ? "dark" : "light";
+      const next = cur === "dark" ? "light" : "dark";
+      localStorage.setItem(KEY, next);
+      apply(next);
     }
-  } else {
-    m[field] = value;
-  }
-
-  inventory[idx] = m;
-  setLS(KEY_INV, inventory);
-  renderAll();
-}
-
-function deleteMedicine(id){
-  if(!confirm("Delete this medicine from inventory?")) return;
-  inventory = inventory.filter(x=>x.id!==id);
-  // remove from cart if present
-  if(cart[id]){ delete cart[id]; setLS(KEY_CART, cart); }
-  setLS(KEY_INV, inventory);
-  renderAll();
-}
-
-function renderAdminTable(){
-  adminTbody.innerHTML = inventory.map(m=>`
-    <tr>
-      <td>
-        <input value="${escapeTxt(m.name||"")}" oninput="updateMedicine('${m.id}','name', this.value)" />
-      </td>
-      <td>
-        <input value="${escapeTxt(m.salt||"")}" oninput="updateMedicine('${m.id}','salt', this.value)" />
-      </td>
-      <td>
-        <input value="${escapeTxt(m.category||"")}" oninput="updateMedicine('${m.id}','category', this.value)" />
-      </td>
-      <td>
-        <input value="${escapeTxt(m.pack||"")}" oninput="updateMedicine('${m.id}','pack', this.value)" />
-      </td>
-      <td>
-        <input type="number" min="0" step="0.01" value="${Number(m.mrp||0)}" oninput="updateMedicine('${m.id}','mrp', this.value)" />
-      </td>
-      <td>
-        <input type="number" min="0" step="0.01" value="${Number(m.price||0)}" oninput="updateMedicine('${m.id}','price', this.value)" />
-      </td>
-      <td>
-        <input type="number" min="0" step="1" value="${Number(m.stock||0)}" oninput="updateMedicine('${m.id}','stock', this.value)" />
-      </td>
-      <td style="white-space:nowrap">
-        <button class="btn small danger" onclick="deleteMedicine('${m.id}')">Delete</button>
-      </td>
-    </tr>
-  `).join("");
-}
-let ordersCache = [];
-
-function safeJsonParse(s){
-  try{ return JSON.parse(s); }catch(e){ return null; }
-}
-
-function renderOrders(){
-  if(!ordersTbody) return;
-  const rows = (ordersCache || []).map(o=>{
-    const itemsArr = safeJsonParse(o.itemsJson || "[]") || (o.items || []);
-    const itemsCount = Array.isArray(itemsArr) ? itemsArr.length : 0;
-    const remarksTxt = (o.remarks || "").toString();
-    return `
-      <tr>
-        <td><b>${escapeTxt(o.orderId||"")}</b></td>
-        <td>${escapeTxt(o.dateTime||"")}</td>
-        <td>${escapeTxt(o.userType||"")}</td>
-        <td>${escapeTxt(o.name||"")}</td>
-        <td>${escapeTxt(o.phone||"")}</td>
-        <td>${escapeTxt(o.email||"")}</td>
-        <td>${escapeTxt(o.totalQty||"")}</td>
-        <td>${inr(o.approxTotal||0)}</td>
-        <td title="${escapeTxt(remarksTxt)}">${escapeTxt(remarksTxt).slice(0,60)}${remarksTxt.length>60?"…":""}</td>
-        <td><button class="btn small" onclick="viewOrderItems('${escapeTxt(o.orderId||"")}')">View (${itemsCount})</button></td>
-      </tr>
-    `;
-  }).join("");
-  ordersTbody.innerHTML = rows || `<tr><td colspan="10" class="muted">No orders found.</td></tr>`;
-}
-
-function viewOrderItems(orderId){
-  const o = (ordersCache || []).find(x => String(x.orderId) === String(orderId));
-  if(!o){ alert("Order not found."); return; }
-  const itemsArr = safeJsonParse(o.itemsJson || "[]") || (o.items || []);
-  let msg = `Order: ${o.orderId}\nDate: ${o.dateTime}\nCustomer: ${o.userType} - ${o.name}\n\nItems:\n`;
-  (itemsArr||[]).forEach((it, i)=>{
-    msg += `${i+1}) ${it.name || ""} | ${it.pack || ""} | Qty: ${it.qty || 0} | Price: ${it.price || 0}\n`;
   });
-  if(o.remarks) msg += `\nRemarks: ${o.remarks}`;
-  alert(msg);
-}
-
-function toCsvRow(fields){
-  return fields.map(v=>{
-    const s = String(v ?? "");
-    if(/[",\n]/.test(s)) return '"' + s.replace(/"/g,'""') + '"';
-    return s;
-  }).join(",");
-}
-
-function exportOrdersCsv(){
-  if(!ordersCache || ordersCache.length===0){ alert("No orders to export."); return; }
-  const headers = ["orderId","dateTime","userType","name","phone","email","totalQty","approxTotal","remarks","itemsJson"];
-  const lines = [toCsvRow(headers)];
-  ordersCache.forEach(o=>{
-    lines.push(toCsvRow(headers.map(h=>o[h] ?? "")));
-  });
-  const blob = new Blob([lines.join("\n")], {type:"text/csv;charset=utf-8"});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "orders_export.csv";
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
-}
-
-async function refreshOrders(){
-  try{
-    ordersCache = await apiGetOrders(200);
-    renderOrders();
-  }catch(e){
-    alert("Orders load failed: " + e.message + "\n\nAdd action=listOrders in Apps Script.");
-  }
-}
-
-
-/* =========================
-   EVENTS
-========================= */
-btnOpenUserLogin.onclick = ()=>{ showUserLogin(true); showAdminLogin(false); };
-btnCloseUserLogin.onclick = ()=> showUserLogin(false);
-
-btnOpenAdminLogin.onclick = ()=>{ showAdminLogin(true); showUserLogin(false); };
-btnCloseAdminLogin.onclick = ()=> showAdminLogin(false);
-
-btnCloseAdmin.onclick = ()=> showAdminPanel(false);
-
-btnUserLogin.onclick = ()=>{
-  const name = (uName.value||"").trim();
-  const type = (uType.value||"").trim();
-  const email = (uEmail.value||"").trim();
-  const phone = (uPhone.value||"").trim();
-
-  if(!name || !type || !email || !phone){
-    toast("Please fill Name, Business Type, Email, and Phone.");
-    return;
-  }
-  user = { name, type, email, phone };
-  setLS(KEY_USER, user);
-
-  adminLogged = false;
-  setLS(KEY_ADMIN, adminLogged);
-  showUserLogin(false);
-  showAdminLogin(false);
-  showAdminPanel(false);
-
-  renderAll();
-};
-
-btnAdminLogin.onclick = ()=>{
-  const em = (adEmail.value||"").trim();
-  const pw = (adPass.value||"").trim();
-
-  if(em === ADMIN_EMAIL && pw === ADMIN_PASSWORD){
-    adminLogged = true;
-    setLS(KEY_ADMIN, adminLogged);
-    user = null;
-    setLS(KEY_USER, user);
-
-    showAdminLogin(false);
-    showUserLogin(false);
-    showAdminPanel(true);
-
-    renderAll();
-    // Load orders list
-    refreshOrders();
-  }else{
-    toast("Invalid admin credentials.");
-  }
-};
-
-btnLogout.onclick = ()=>{
-  adminLogged = false;
-  user = null;
-  setLS(KEY_ADMIN, adminLogged);
-  setLS(KEY_USER, user);
-  showAdminPanel(false);
-  showAdminLogin(false);
-  showUserLogin(false);
-  renderAll();
-};
-
-searchBox.oninput = renderInventory;
-sortBy.onchange = renderInventory;
-
-btnClearCart.onclick = ()=>{
-  if(Object.keys(cart).length===0){ toast("Cart already empty."); return; }
-  if(confirm("Clear entire cart?")) clearCart();
-};
-
-btnConfirmOrder.onclick = async ()=>{
-  if(!ensureUserReady()) return;
-  try{
-    const result = await confirmAndFinalize();
-    if(!result) return;
-    alert(`Order confirmed & saved (stock reduced on server). Order ID: ${result.orderId}`);
-  }catch(e){
-    alert('Order confirm failed: ' + e.message + "\n\nCommon fix: Use Apps Script Web App URL ending with /exec (not /dev) and set access to Anyone.");
-  }
-};
-
-btnShareWhatsApp.onclick = shareWhatsApp;
-btnSendEmail.onclick = sendEmail;
-
-if(btnRefreshOrders){ btnRefreshOrders.onclick = refreshOrders; }
-if(btnExportOrdersCsv){ btnExportOrdersCsv.onclick = exportOrdersCsv; }
-
-btnAddMedicine.onclick = addMedicine;
-btnResetAdminForm.onclick = resetAdminForm;
-
-btnResetDemo.onclick = ()=>{
-  if(!confirm("Reset inventory to demo data? This will overwrite current inventory.")) return;
-  inventory = DEMO.map(x=>({ ...x, id: uid() }));
-  setLS(KEY_INV, inventory);
-  clearCart();
-  renderAll();
-};
-
-/* =========================
-   MAIN RENDER
-========================= */
-function renderAll(){
-  refreshTopPill();
-  renderInventory();
-  renderCart();
-
-  adminEmailShow.textContent = ADMIN_EMAIL;
-  if(adminLogged){ renderOrders(); }
-
-  if(adminLogged){
-    showAdminPanel(true);
-    renderAdminTable();
-  }else{
-    // keep admin panel hidden unless admin logged in
-    showAdminPanel(false);
-  }
-}
-renderAll();
-
-/* expose functions for inline handlers */
-window.incQty = incQty;
-window.decQty = decQty;
-window.removeItem = removeItem;
-window.updateMedicine = updateMedicine;
-window.deleteMedicine = deleteMedicine;
-window.viewOrderItems = viewOrderItems;
+})();
 </script>
 
 </body>
 </html>
-
