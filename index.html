@@ -211,6 +211,8 @@ th{
 <h1>Ahanitya Pharma Life Science LLP</h1>
 <h2> Patient Care Support Web Portal </h2>
 <div class="note">Attachment + Selected Medicines + Quantity are compulsory for email submission.</div>
+<div class="note" style="color:#dc2626;font-weight:700;">🚚 Service Available in Ahmedabad City Only.</div>
+
 
 <div class="logo-row">
   <div class="logo-card">
@@ -253,6 +255,18 @@ th{
   <div>
     <label>Mobile No <span class="req">*</span></label>
     <input type="tel" name="Mobile No" id="custMobile" placeholder="Enter 10-digit Mobile No" required>
+  </div>
+</div>
+
+<div class="grid grid-2" style="margin-top:14px;">
+  <div>
+    <label>City <span class="req">*</span></label>
+    <input type="text" name="City" id="custCity"
+           placeholder="Enter City (Service Available in Ahmedabad Only)" required>
+  </div>
+  <div>
+    <label>Area / Locality (Optional)</label>
+    <input type="text" name="Area / Locality" placeholder="Eg: Bopal, Maninagar, Satellite">
   </div>
 </div>
 
@@ -382,6 +396,14 @@ function collectItems(){
 }
 
 document.getElementById("ecForm").addEventListener("submit",function(e){
+  const cityEl = document.getElementById("custCity");
+  const city = (cityEl && cityEl.value ? cityEl.value.trim().toLowerCase() : "");
+  if(city !== "ahmedabad"){
+    e.preventDefault();
+    document.getElementById("status").textContent = "Currently service is available in Ahmedabad only.";
+    document.getElementById("status").className = "status err";
+    return;
+  }
   const items = collectItems();
   if(!items){
     e.preventDefault();
@@ -395,6 +417,12 @@ document.getElementById("ecForm").addEventListener("submit",function(e){
 });
 
 function sendBoth(){
+  const cityEl = document.getElementById("custCity");
+  const city = (cityEl && cityEl.value ? cityEl.value.trim().toLowerCase() : "");
+  if(city !== "ahmedabad"){
+    alert("Currently service is available in Ahmedabad only.");
+    return;
+  }
   const items = collectItems();
   if(!items){
     alert("Select at least one medicine with quantity.");
@@ -429,7 +457,7 @@ function sendBoth(){
 document.addEventListener("DOMContentLoaded", renderRows);
 </script>
 
-</body>
-  <p>© 2026 Ahanitya Pharma Life Science LLP. All Rights Reserved.  
+<p>© 2026 Ahanitya Pharma Life Science LLP. All Rights Reserved.  
 Developed by APLSL.</p>
+</body>
 </html>
