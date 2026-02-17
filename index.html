@@ -140,6 +140,64 @@ th{
   letter-spacing:.2px;
 }
 
+
+/* ===== Logo cards (side-by-side) ===== */
+.logo-row{
+  display:flex;
+  gap:14px;
+  flex-wrap:wrap;
+  align-items:stretch;
+  margin-top:14px;
+}
+.logo-card{
+  flex:1 1 280px;
+  border:1px dashed #cbd5e1;
+  border-radius:14px;
+  padding:14px;
+  background:#ffffff;
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.logo-card img{
+  height:56px;
+  width:auto;
+  max-width:160px;
+  object-fit:contain;
+  display:block;
+}
+.logo-card .logo-text{
+  line-height:1.2;
+}
+.logo-card .logo-title{
+  font-weight:800;
+  color:var(--text);
+}
+.logo-card .logo-sub{
+  font-size:12px;
+  color:var(--muted);
+  margin-top:4px;
+}
+
+/* ===== Select Medicines background image ===== */
+#medicineSection{
+  position:relative;
+  background: url('images/medicine-bg.jpg') center center / cover no-repeat;
+  border-radius:14px;
+  overflow:hidden;
+}
+#medicineSection::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background: rgba(255,255,255,0.86); /* overlay for readability */
+  z-index:0;
+}
+#medicineSection > *{
+  position:relative;
+  z-index:1;
+}
+
 </style>
 </head>
 
@@ -150,6 +208,25 @@ th{
 <h1>Ahanitya Pharma Life Science LLP</h1>
 <h2>End Consumer Order Form</h2>
 <div class="note">Attachment + Selected Medicines + Quantity are compulsory for email submission.</div>
+
+<div class="logo-row">
+  <div class="logo-card">
+    <img src="images/logo-1.png" alt="Logo 1">
+    <div class="logo-text">
+      <div class="logo-title">Logo 1</div>
+      <div class="logo-sub">Replace: images/logo-1.png</div>
+    </div>
+  </div>
+
+  <div class="logo-card">
+    <img src="images/logo-2.png" alt="Logo 2">
+    <div class="logo-text">
+      <div class="logo-title">Logo 2</div>
+      <div class="logo-sub">Replace: images/logo-2.png</div>
+    </div>
+  </div>
+</div>
+
 </div>
 
 <form id="ecForm"
@@ -204,7 +281,7 @@ accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xls,.xlsx,.csv"
 required>
 </div>
 
-<div class="medBox">
+<div class="medBox" id="medicineSection">
 <h2>Select Medicines & Quantity <span class="req">*</span></h2>
 
 <div class="medScroll">
@@ -241,93 +318,97 @@ const MEDICINES=[
   {brand:"ASP", strength:"Aceclofenac + Paracetamol + Serratiopeptidase", available:true},
   {brand:"A-SUNAC", strength:"Aceclofenac + Paracetamol", available:true},
   {brand:"PANTO-DSR", strength:"Pantoprazole + Domperidone", available:true},
-  {brand:"LE-MONT", strength:"Montelukast + Levocetirizine", available:true},
-  {brand:"APLSL-DiaMet", strength:"Glimepiride 2 mg + Metformin HCl (ER)", available:false},
-  {brand:"APLSL-Lulizid", strength:"Luliconazole 1%", available:false}
+  {brand:"LE-MONT", strength:"Montelukast + Levocetirizine", available:true}
 ];
 
 function renderRows(){
-  const tbody=document.getElementById("medBody");
+  const tbody = document.getElementById("medBody");
+  if(!tbody) return;
   tbody.innerHTML = "";
-  MEDICINES.forEach((m,i)=>{
-    const tr=document.createElement("tr");
+
+  MEDICINES.forEach((m, i) => {
+    const tr = document.createElement("tr");
 
     const qtyCell = (m.available === false)
       ? `<span class="na-badge">Updating Soon 🚀</span>`
-      : `<input type="number" min="0" value="0" class="qty">`;
+      : `<input type="number" min="0" step="1" value="0" class="qty" inputmode="numeric">`;
 
     const unitCell = (m.available === false)
       ? `<span class="na-badge">—</span>`
       : `<select class="uom">
-           <option>Box</option>
-           <option>Strip</option>
-           <option>Bottle</option>
-           <option>Each</option>
+           <option value="Box">Box</option>
+           <option value="Strip">Strip</option>
+           <option value="Bottle">Bottle</option>
+           <option value="Each">Each</option>
          </select>`;
 
-    tr.innerHTML=`
-      <td>${i+1}</td>
+    tr.innerHTML = `
+      <td>${i + 1}</td>
       <td>${m.brand}</td>
       <td>${m.strength}</td>
       <td class="right">${qtyCell}</td>
-      <td class="right">${unitCell}</td>`;
+      <td class="right">${unitCell}</td>
+    `;
 
     tbody.appendChild(tr);
   });
 }
 
-
 function collectItems(){
-  const rows=document.querySelectorAll("#medBody tr");
-  let text="";
+  const rows = document.querySelectorAll("#medBody tr");
+  let text = "";
+
   rows.forEach((row)=>{
     const qtyEl = row.querySelector(".qty");
-    if(!qtyEl) return; // unavailable item (Updating Soon)
+    if(!qtyEl) return;
+
     const qty = Number(qtyEl.value || 0);
-    if(qty>0){
-      const brand=row.cells[1].innerText;
-      const strength=row.cells[2].innerText;
-      const unit=row.querySelector(".uom") ? row.querySelector(".uom").value : "";
-      text+=`${brand} (${strength}) - ${qty} ${unit}\n`;
+    if(qty > 0){
+      const brand = row.cells[1].innerText.trim();
+      const strength = row.cells[2].innerText.trim();
+      const unit = row.querySelector(".uom") ? row.querySelector(".uom").value : "";
+      text += `${brand} (${strength}) - ${qty} ${unit}
+`;
     }
   });
-  return text;
-}
 
-});
-return text;
+  return text.trim();
 }
 
 document.getElementById("ecForm").addEventListener("submit",function(e){
-const items=collectItems();
-if(!items){
-e.preventDefault();
-document.getElementById("status").textContent="Please select at least one medicine with quantity.";
-document.getElementById("status").className="status err";
-return;
-}
-document.getElementById("hiddenItems").value=items;
-document.getElementById("status").textContent="Sending to email...";
-document.getElementById("status").className="status ok";
+  const items = collectItems();
+  if(!items){
+    e.preventDefault();
+    document.getElementById("status").textContent = "Please select at least one medicine with quantity.";
+    document.getElementById("status").className = "status err";
+    return;
+  }
+  document.getElementById("hiddenItems").value = items;
+  document.getElementById("status").textContent = "Sending to email...";
+  document.getElementById("status").className = "status ok";
 });
 
 function sendWhatsApp(){
-const items=collectItems();
-if(!items){
-alert("Select at least one medicine with quantity.");
-return;
-}
-const name=document.getElementById("custName").value;
-const mobile=document.getElementById("custMobile").value;
-if(!name||!mobile){
-alert("Fill Name and Mobile No first.");
-return;
-}
-const message=`APLSL End Consumer Order%0AName: ${name}%0AMobile: ${mobile}%0A%0AMedicines:%0A${encodeURIComponent(items)}`;
-window.open(`https://wa.me/918487090212?text=${message}`,"_blank");
+  const items = collectItems();
+  if(!items){
+    alert("Select at least one medicine with quantity.");
+    return;
+  }
+  const name = document.getElementById("custName").value.trim();
+  const mobile = document.getElementById("custMobile").value.trim();
+  if(!name || !mobile){
+    alert("Fill Name and Mobile No first.");
+    return;
+  }
+  const message =
+    `APLSL End Consumer Order%0AName: ${encodeURIComponent(name)}%0A`+
+    `Mobile: ${encodeURIComponent(mobile)}%0A%0A`+
+    `Medicines:%0A${encodeURIComponent(items)}`;
+
+  window.open(`https://wa.me/918487090212?text=${message}`,"_blank");
 }
 
-renderRows();
+document.addEventListener("DOMContentLoaded", renderRows);
 </script>
 
 </body>
