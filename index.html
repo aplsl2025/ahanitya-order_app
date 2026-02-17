@@ -306,9 +306,9 @@ required>
 <textarea id="hiddenItems" name="Selected Medicines" style="display:none"></textarea>
 
 <div class="row" style="margin-top:18px">
-  <button type="submit" class="btn btn-primary">Submit to Email</button>
-  <button type="button" class="btn btn-danger" onclick="sendWhatsApp()">Send to WhatsApp</button>
-  <button type="button" class="btn btn-primary" onclick="sendBoth()">Send to WhatsApp + Email</button>
+  <button type="button" class="btn btn-primary" onclick="sendBoth()">
+    Submit Order
+  </button>
 </div>
 
 <div id="status" class="status"></div>
@@ -411,12 +411,13 @@ function sendBoth(){
   // Set hidden textarea for email
   document.getElementById("hiddenItems").value = items;
 
-  // Submit form (Email)
+  // Submit Email
   document.getElementById("ecForm").submit();
 
   // WhatsApp message
   const message =
-    `APLSL End Consumer Order%0AName: ${encodeURIComponent(name)}%0A`+
+    `APLSL End Consumer Order%0A`+
+    `Name: ${encodeURIComponent(name)}%0A`+
     `Mobile: ${encodeURIComponent(mobile)}%0A%0A`+
     `Medicines:%0A${encodeURIComponent(items)}`;
 
