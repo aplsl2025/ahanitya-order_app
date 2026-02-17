@@ -1,1082 +1,246 @@
-  <!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Ahanitya Order Portal</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>APLSL End Consumer Order</title>
 
-  <style>
-    :root { 
+<style>
+:root{
   --brand:#1b8ea6;
   --bg:#f4f7fb;
   --card:#ffffff;
   --text:#0f172a;
   --muted:#475569;
   --danger:#dc2626;
-
-  /* Doctor-friendly sizing */
-  --base-font: 16px;
-  --label-font: 13px;
-  --input-font: 15px;
-  --table-font: 14px;
-
-  /* Accents */
-  --accent-soft: rgba(27,142,166,.22);
-  --accent-strong: rgba(27,142,166,.55);
+  --ok:#065f46;
 }
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:linear-gradient(180deg,#f7fbff,#eef5ff);color:var(--text)}
-    .wrap{max-width:980px;margin:0 auto;padding:24px}
-    .card{position:relative;background:linear-gradient(180deg,#ffffff,#fbfdff);border:1px solid #e5e7eb;border-radius:16px;padding:18px;box-shadow:0 6px 20px rgba(0,0,0,.08);overflow:hidden}
-    h1{margin:0 0 10px;font-size:22px}
-    h2{margin:0 0 12px;font-size:18px;color:#dfe8ff}
-    .grid{display:grid;gap:14px}
-    @media (min-width:860px){ .grid-2{grid-template-columns:1fr 1fr} }
-    label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
-    input,textarea,select{width:100%;padding:11px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:var(--text);outline:none}
-    textarea{min-height:90px;resize:vertical}
-    .row{display:flex;gap:10px;align-items:center}
-    .row > *{flex:1}
-    .btn{cursor:pointer;border:none;border-radius:12px;padding:12px 14px;font-weight:700}
-    .btn-primary{background:var(--brand);color:white}
-    .btn-ghost{background:transparent;border:1px solid rgba(255,255,255,.14);color:var(--text)}
-    .btn-danger{background:var(--danger);color:#1a0b0b}
-    .muted{color:var(--muted);font-size:12px}
-    .pill{display:inline-block;padding:6px 10px;border-radius:999px;background:rgba(17,121,154,.15);border:1px solid rgba(17,121,154,.35);color:#bfefff;font-size:12px}
-    table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:12px}
-    th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,.08);text-align:left;font-size:13px}
-    th{color:#cfe6ff;font-weight:700;background:rgba(255,255,255,.04)}
-    .right{text-align:right}
-    .hide{display:none !important}
-    .note{padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.05);border:1px dashed rgba(255,255,255,.18);font-size:12px;color:var(--muted)}
-    .status{font-size:13px;margin-top:8px}
-    .status.ok{color:#76ffb1}
-    .status.err{color:#ff9aa4}
-    .na-text{
-  display:inline-block;
-  background:#e6f6fa;
-  color:#1b8ea6;
-  border:1px solid #1b8ea6;
-  padding:4px 10px;
-  border-radius:999px;
-  font-weight:700;
-  font-size:12px;
-  letter-spacing:.3px;
-}
-  
-    /* --- Alignment fix: Order Details & Medicines table ONLY --- */
-    .grid.grid-2{
-      align-items: flex-start;
-    }
-    .grid.grid-2 > div{
-      min-width: 0;
-    }
-
-    table{
-      table-layout: fixed;
-    }
-    th:nth-child(1), td:nth-child(1){ width: 45px; }
-    th:nth-child(2), td:nth-child(2){ width: 130px; }
-    th:nth-child(3), td:nth-child(3){ width: 185px; }
-    th:nth-child(4), td:nth-child(4){ width: 140px; }
-    th:nth-child(5), td:nth-child(5){ width: 160px; }
-
-    .qty{ width:100%; }
-    .uom{ width:100%; }
-
-
-    /* --- Order Details form alignment (no overlap) --- */
-    #orderCard .grid.grid-2{
-      display:grid;
-      gap:14px;
-      grid-auto-flow: row;
-      align-items:start;
-    }
-    #orderCard .grid.grid-2 > div{
-      min-width:0;
-    }
-    #orderCard .grid.grid-2 input,
-    #orderCard .grid.grid-2 select,
-    #orderCard .grid.grid-2 textarea{
-      width:100%;
-      display:block;
-      min-width:0;
-    }
-    /* Desktop: strict 2-column layout */
-    @media (min-width:860px){
-      #orderCard .grid.grid-2{ grid-template-columns: 1fr 1fr; }
-    }
-    /* Mobile: stack fields */
-    @media (max-width:859.98px){
-      #orderCard .grid.grid-2{ grid-template-columns: 1fr; }
-    }
-
-
-/* --- Compact Order Details inputs (NO other sections affected) --- */
-#orderCard input,
-#orderCard select{
-  padding:6px 10px;
-  box-sizing:border-box;
-}
-
-
-/* --- Logo sizing (responsive & premium) --- */
-/* --- Logo card stays white in BOTH themes --- */
-.logo-card{
-  background:#ffffff !important;
-}
-.logo-img{
-  max-height:130px;
-  max-width:400px;
-  width:auto;
-  object-fit:contain;
-}
-
-
-/* --- Section backgrounds (replace images in /assets/) --- */
-#orderCard{
-  background:
-    linear-gradient(rgba(6,11,20,0.60), rgba(6,11,20,0.60)),
-    url("       ");
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-}
-
-/* Select Medicines & Quantity background (scoped) */
-#medSection{
-  background:
-    linear-gradient(rgba(10,18,35,0.40), rgba(10,18,35,0.40)),
-    url("images/product portfolio (1).png");
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  padding:16px;
-  border-radius:14px;
-  border:1px solid rgba(255,255,255,.08);
-}
-
-
-/* --- Light theme input & dropdown styling --- */
-input, textarea{
-  background:#ffffff;
-  color:#111827;
-}
-
-select{
-  background:#ffffff;
-  color:#000000 !important;
-  font-weight:700;
-}
-
-select option{
-  color:#000000;
-  font-weight:700;
-}
-
-
-/* --- Brand accent line on cards --- */
-.card::before{
-  content:"";
-  position:absolute;
-  left:0; right:0; top:0;
-  height:6px;
-  background:linear-gradient(90deg,var(--accent-strong),var(--accent-soft));
-}
-
-/* --- Doctor-friendly typography --- */
-body{font-size:var(--base-font)}
-label{font-size:var(--label-font)}
-input,textarea,select{font-size:var(--input-font)}
-th,td{font-size:var(--table-font)}
-h1{font-size:24px}
-h2{font-size:19px}
-
-/* Make form elements more readable on light theme */
-input, textarea{
-  background:#ffffff;
-  color:#111827;
-}
-select{
-  background:#ffffff;
-  color:#000000 !important;
-  font-weight:700;
-}
-select option{
-  color:#000000;
-  font-weight:700;
-}
-
-/* --- Theme toggle button --- */
-.btn-toggle{
-  background:transparent;
-  border:1px solid rgba(15,23,42,.18);
-  color:#0f172a;
-}
-.btn-toggle:hover{border-color:rgba(27,142,166,.55)}
-
-/* --- Dark theme (toggle) --- */
-body[data-theme="dark"]{
-  --bg:#060b14;
-  --card:#0f1a2b;
-  --text:#f1f5ff;
-  --muted:#9fb2cc;
-  background:linear-gradient(180deg,#071022,#0b1220);
-}
-body[data-theme="dark"] .card{
-  background:rgba(15,26,43,.90);
-  border:1px solid rgba(255,255,255,.10);
-  box-shadow:0 8px 24px rgba(0,0,0,.35);
-}
-body[data-theme="dark"] .btn-toggle{
-  border-color:rgba(255,255,255,.18);
-  color:#f1f5ff;
-}
-body[data-theme="dark"] input,
-body[data-theme="dark"] textarea,
-body[data-theme="dark"] select{
-  background:rgba(255,255,255,.06);
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+  background:linear-gradient(180deg,#f7fbff,#eef5ff);
   color:var(--text);
-  border:1px solid rgba(255,255,255,.12);
 }
-body[data-theme="dark"] select,
-body[data-theme="dark"] select option{
-  color:var(--text) !important;
-  font-weight:700;
-}
-body[data-theme="dark"] th{background:rgba(255,255,255,.04); color:#cfe6ff}
-
-
-/* --- Light mode visibility fixes (Status pill + Table + Section overlays) --- */
-
-/* Status pill readable in light mode */
-body:not([data-theme="dark"]) .pill{
-  background:#e6f6fa;
-  border:1px solid #1b8ea6;
-  color:#0f172a;
-  font-weight:600;
-}
-
-/* Light mode: use LIGHT overlays on section background images */
-body:not([data-theme="dark"]) #orderCard{
-  background:
-    linear-gradient(rgba(255,255,255,0.40), rgba(255,255,255,0.40)),
-    url("assets/order-bg.jpg");
-}
-
-body:not([data-theme="dark"]) #medSection{
-  background:
-    linear-gradient(rgba(255,255,255,0.90), rgba(255,255,255,0.90)),
-    url("images/product portfolio (1).png");
+.wrap{max-width:1000px;margin:auto;padding:24px}
+.card{
+  background:#fff;
   border:1px solid #e5e7eb;
+  border-radius:16px;
+  padding:18px;
+  box-shadow:0 6px 20px rgba(0,0,0,.08);
+  margin-bottom:14px;
 }
-
-/* Light mode: table text/borders readable */
-body:not([data-theme="dark"]) th{
-  color:#0f172a;
-  background:#f1f5f9;
+h1{margin:0 0 10px}
+h2{margin:0 0 12px}
+label{display:block;font-size:13px;margin-bottom:6px;color:var(--muted)}
+input,select{
+  width:100%;
+  padding:10px 12px;
+  border-radius:10px;
+  border:1px solid #e5e7eb;
+  background:#fff;
 }
-body:not([data-theme="dark"]) td{
-  color:#0f172a;
+.grid{display:grid;gap:14px}
+@media (min-width:860px){ .grid-2{grid-template-columns:1fr 1fr} }
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.btn{
+  border:none;
+  border-radius:12px;
+  padding:12px 16px;
+  font-weight:700;
+  cursor:pointer;
 }
-body:not([data-theme="dark"]) th, 
-body:not([data-theme="dark"]) td{
+.btn-primary{background:var(--brand);color:white}
+.btn-danger{background:var(--danger);color:white}
+.status{margin-top:10px;font-size:14px}
+.status.ok{color:var(--ok)}
+.status.err{color:var(--danger)}
+.medBox{
+  margin-top:14px;
+  border:1px solid #e5e7eb;
+  border-radius:14px;
+  padding:12px;
+  background:#fbfdff;
+}
+.medScroll{
+  height:420px;
+  overflow:auto;
+  border-radius:12px;
+  border:1px solid #e5e7eb;
+  background:white;
+}
+table{
+  width:max-content;
+  min-width:1000px;
+  border-collapse:collapse;
+}
+th,td{
+  padding:10px;
   border-bottom:1px solid #e5e7eb;
+  font-size:13px;
 }
-
-
-/* --- Fixed size + 2D scroll for Select Medicines & Quantity --- */
-#medSection{
-  /* Fixed box size (adjust if needed) */
-  height: 520px;
-  width: 100%;
-  box-sizing: border-box;
-  overflow: hidden; /* keep scroll only inside table area */
+th{
+  background:#f1f5f9;
+  position:sticky;
+  top:0;
 }
-
-/* The scrollable area inside the section (both vertical + horizontal) */
-#medSection .medScroll{
-  height: calc(520px - 130px); /* leaves room for title + buttons + small notes */
-  overflow-y: auto;
-  overflow-x: auto;
-  /* enables top-bottom + left-right scroll */
-  -webkit-overflow-scrolling: touch;
-  border-radius: 12px;
+.right{text-align:right}
+.qty{width:90px}
+.uom{width:110px}
+.req{color:var(--danger);font-weight:bold}
+.note{
+  margin-top:10px;
+  font-size:12px;
+  color:var(--muted);
 }
-
-
-/* Ensure horizontal scroll appears when needed */
-#medSection table{
-  width: max-content;
-  min-width: 1100px; /* forces horizontal scroll when container is narrower */
-  border-collapse: collapse;
-}
-
-@media (max-width: 480px){
-  #medSection{ height: 480px; }
-  #medSection .medScroll{ height: calc(480px - 140px); }
-  #medSection table{ width:max-content; min-width: 980px; }
-}
-
-
-
-/* Make sure scroll container allows full-width content */
-#medSection .medScroll{
-  white-space: nowrap;
-}
-#medSection .medScroll table,
-#medSection .medScroll thead,
-#medSection .medScroll tbody,
-#medSection .medScroll tr{
-  white-space: normal;
-}
-/* Login / Create Account: prevent overlap */
-.login-row{
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  flex-wrap: wrap;          /* stacks on small screens */
-}
-
-.login-row .field{
-  flex: 1 1 200px;          /* each column tries to be 50%, min 280px */
-  min-width: 200px;
-}
-
-.login-row input{
-  width: 100%;
-  box-sizing: border-box;
-
-}
-#loginEmail,
-#loginPass{
-  height:38px;          /* fixed equal height */
-  padding:6px 10px;     /* compact but neat */
-  box-sizing:border-box;
-  font-size:14px;
-}
-
-
 </style>
-
-  <!-- EmailJS -->
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-
-  <!-- Firebase (Auth) -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } 
-      from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-
-    // ✅ 1) PUT YOUR FIREBASE CONFIG HERE
-    const firebaseConfig = {
-      apiKey: "AIzaSyCneC5CT9qfM8myRfoMZ7N4efUezDYMbLY",
-      authDomain: "ahanitya-order-app.firebaseapp.com",
-      projectId: "ahanitya-order-app",
-      appId: "1:107492901712:web:b53eed0e9934ff6f1b6255"
-    };
-
-    // ✅ 2) PUT YOUR EMAILJS DETAILS HERE
-    const EMAILJS_PUBLIC_KEY = "bKeNAq67qFjMMOtmO";
-    const EMAILJS_SERVICE_ID = "service_94vs7qt";
-    const EMAILJS_TEMPLATE_ID = "template_9qtgzil";
-
-    // Fixed receiver + WhatsApp
-    const RECEIVER_EMAIL = "infoahanityapharmalifescellp@gmail.com";
-    const WHATSAPP_NUMBER = "918487090212"; // +91 8487090212 (no +)
-
-    // ---------- Init ----------
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
-
-    // ---------- UI Helpers ----------
-    const $ = (id) => document.getElementById(id);
-    const show = (el) => el.classList.remove("hide");
-    const hide = (el) => el.classList.add("hide");
-
-    // ---------- Medicines (Edit your list) ----------
-    const MEDICINES = [
-      { brand: "AZIN-500", strength: "Azithromycin Tablets I.P 500 mg" , available: true },
-      { brand: "ASP", strength: "Aceclofenac 100 mg + Paracetamol 325 mg + Serratiopeptidase 15 mg" , available: true },
-      { brand: "A-SUNAC", strength: "Aceclofenac 100 mg + Paracetamol 325 mg" , available: true },
-      { brand: "APLSL-DiaMet", strength: "Glimepiride 2 mg + Metformin HCl (ER)" , available: false },
-      { brand: "APLSL-Lulizid", strength: "Luliconazole 1%" , available: false },
-      { brand: "Ahanitya-Ketozin", strength: "Ketoconazole 2%" , available: false },
-      { brand: "APLSL-Cutiderm", strength: "Itraconazole 1% + Ofloxacin 0.75% + Ornidazole 2% + Clobetasol 0.05%" , available: false },
-      { brand: "Ahanitya-AmbroLev", strength: "Ambroxol 60 mg + Levocetirizine 2.5 mg + Paracetamol 500 mg + Phenylephrine 5 mg" , available: false },
-      { brand: "PANTO-DSR", strength: "Pantoprazole 40 mg + Domperidone 30 mg" , available: true },
-      { brand: "LE-MONT", strength: "Montelukast 10 mg + Levocetirizine 5 mg" , available: true }
-    ];
-
-    function renderMedicineRows() {
-      const tbody = $("medBody");
-      tbody.innerHTML = "";
-      MEDICINES.forEach((item, idx) => {
-        const keyRaw = `${item.brand} (${item.strength})`;
-        const key = escapeHtml(keyRaw);
-
-        // Availability (set available:false in MEDICINES to show Not Available)
-        const isNA = (item.available === false);
-        const qtyHtml = isNA
-          ? `<span class="na-text">Updating Soon 🚀</span>`
-          : `<input type="number" min="0" step="1" value="0" data-med="${key}" class="qty" style="max-width:110px">`;
-        const uomHtml = isNA
-          ? `<span class="na-text">—</span>`
-          : `<select class="uom" data-uom-med="${key}" style="max-width:140px">
-               <option value="Box">Box</option>
-               <option value="Strip">Strip</option>
-               <option value="Each">Each</option>
-             </select>`;
-
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${idx + 1}</td>
-          <td>${escapeHtml(item.brand)}</td>
-          <td>${escapeHtml(item.strength)}</td>
-          <td class="right">${qtyHtml}</td>
-          <td class="right">${uomHtml}</td>
-`;
-        tbody.appendChild(tr);
-      });
-    }
-
-    function escapeHtml(str) {
-      return str.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
-    }
-
-    function getOrderItems() {
-      const qtyInputs = Array.from(document.querySelectorAll(".qty"));
-      const uomInputs = Array.from(document.querySelectorAll(".uom"));
-
-      // Build a map: medicine -> unit
-      const uomMap = new Map(
-        uomInputs.map(sel => [sel.getAttribute("data-uom-med"), sel.value])
-      );
-
-      const items = qtyInputs
-        .map(inp => {
-          const med = inp.getAttribute("data-med");
-          return {
-            med,
-            qty: Number(inp.value || 0),
-            uom: uomMap.get(med) || "Box"
-          };
-        })
-        .filter(x => x.qty > 0);
-
-      return items;
-    }
-
-    function buildOrderText(payload) {
-      const lines = [];
-      lines.push("📦 *Ahanitya Order*");
-      lines.push("");
-      lines.push(`👤 Name: ${payload.customer_name}`);
-      lines.push(`📍 Address: ${payload.customer_address}`);
-      lines.push(`📧 Email: ${payload.customer_email}`);
-      lines.push(`📞 Contact: ${payload.customer_phone}`);
-      lines.push(`🏢 Business Type: ${payload.business_type || ""}`);
-      lines.push(`👥 Referred By: ${payload.referred_by}`);
-      if (payload.referred_by === "Yes") {
-        lines.push(`🙍 Referrer Name: ${payload.referrer_name}`);
-        lines.push(`🎓 Referrer Designation: ${payload.referrer_designation}`);
-        if (payload.referrer_email) {
-          lines.push(`📧 Referrer Email: ${payload.referrer_email}`);
-        }
-      }
-      lines.push("");
-      lines.push("💊 *Medicines Ordered:*");
-      payload.items.forEach((it, i) => lines.push(`${i+1}. ${it.med} — Qty: ${it.qty} ${it.uom}`));
-      lines.push("");
-      lines.push(`🗓 Date/Time: ${new Date().toLocaleString()}`);
-      return lines.join("\n");
-    }
-
-    // ---------- Auth ----------
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        hide($("authCard"));
-        show($("orderCard"));
-        $("who").textContent = user.email;
-      } else {
-        show($("authCard"));
-        hide($("orderCard"));
-        $("who").textContent = "";
-      }
-    });
-
-    $("btnLogin").addEventListener("click", async () => {
-      $("authStatus").textContent = "";
-      const email = $("loginEmail").value.trim();
-      const pass = $("loginPass").value.trim();
-      try {
-        await signInWithEmailAndPassword(auth, email, pass);
-        $("authStatus").textContent = "Logged in successfully ✅";
-        $("authStatus").className = "status ok";
-      } catch (e) {
-        $("authStatus").textContent = (e?.message || "Login failed");
-        $("authStatus").className = "status err";
-      }
-    });
-
-    $("btnSignup").addEventListener("click", async () => {
-      $("authStatus").textContent = "";
-      const email = $("loginEmail").value.trim();
-      const pass = $("loginPass").value.trim();
-      try {
-        await createUserWithEmailAndPassword(auth, email, pass);
-        $("authStatus").textContent = "Account created & logged in ✅";
-        $("authStatus").className = "status ok";
-      } catch (e) {
-        $("authStatus").textContent = (e?.message || "Sign-up failed");
-        $("authStatus").className = "status err";
-      }
-    });
-
-    $("btnLogout").addEventListener("click", async () => {
-      await signOut(auth);
-    });
-
-    // ---------- Submit Order ----------
-    $("btnSubmit").addEventListener("click", async () => {
-      $("orderStatus").textContent = "";
-
-      // Validate
-      const items = getOrderItems();
-      if (items.length === 0) {
-        $("orderStatus").textContent = "Please select at least 1 medicine with quantity.";
-        $("orderStatus").className = "status err";
-        return;
-      }
-
-      const payload = {
-        customer_name: $("custName").value.trim(),
-        customer_address: $("custAddress").value.trim(),
-        customer_email: $("custEmail").value.trim(),
-        customer_phone: $("custPhone").value.trim(),
-        receiver_email: RECEIVER_EMAIL,
-        items,
-        business_type: $("custBusiness") ? $("custBusiness").value.trim() : "",
-        referred_by: $("referredFlag") ? $("referredFlag").value : "No",
-        referrer_name: $("referrerName") ? $("referrerName").value.trim() : "",
-        referrer_designation: $("referrerDesignation") ? $("referrerDesignation").value.trim() : "",
-        referrer_email: $("referrerEmail") ? $("referrerEmail").value.trim() : "",
-      };
-
-      if (!payload.customer_name || !payload.customer_address || !payload.customer_email || !payload.customer_phone || !payload.business_type) {
-        $("orderStatus").textContent = "Please fill Name, Address, Email, Contact No and Business Type.";
-        $("orderStatus").className = "status err";
-        return;
-      }
-
-      const orderText = buildOrderText(payload);
-
-      // 1) Send Email via EmailJS
-      try {
-        await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-          // IMPORTANT: Your EmailJS template "To Email" should be set to {{to_email}} OR fixed to the receiver.
-          // We pass to_email here to avoid "recipient address is empty".
-          to_email: RECEIVER_EMAIL,
-
-          // These keys MUST match your EmailJS template variables like:
-          // {{customer_name}}, {{customer_email}}, {{customer_phone}}, {{customer_address}}, {{order_details}}
-          customer_name: payload.customer_name,
-          customer_email: payload.customer_email,
-          customer_phone: payload.customer_phone,
-          customer_address: payload.customer_address,
-          order_details: orderText,
-          business_type: payload.business_type
-        });
-
-        // 2) Open WhatsApp with prefilled message
-        const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(orderText)}`;
-        window.open(waUrl, "_blank", "noopener,noreferrer");
-
-        $("orderStatus").textContent = "Order submitted ✅ Email sent + WhatsApp opened.";
-        $("orderStatus").className = "status ok";
-
-      } catch (e) {
-        $("orderStatus").textContent = "Email sending failed: " + (e?.text || e?.message || "Unknown error") + " (check EmailJS service/template & Gmail permission).";
-        $("orderStatus").className = "status err";
-        console.error(e);
-      }
-    });
-
-    // Init page
-    renderMedicineRows();
-
-    // Top submit button triggers same action
-    const btnSubmitTop = document.getElementById("btnSubmitTop");
-    if (btnSubmitTop) {
-      btnSubmitTop.addEventListener("click", () => {
-        document.getElementById("btnSubmit").click();
-      });
-    }
-
-
-    const referredFlag = document.getElementById("referredFlag");
-    const ref1 = document.getElementById("referrerFields");
-    const ref2 = document.getElementById("referrerFields2");
-
-    if (referredFlag) {
-      referredFlag.addEventListener("change", () => {
-        if (referredFlag.value === "Yes") {
-          ref1.style.display = "block";
-          ref2.style.display = "block";
-          document.getElementById("referrerFields3").style ("display","block");
-        } else {
-          ref1.style.display = "none";
-          ref2.style.display = "none";
-          document.getElementById("referrerFields3").style ("display","none");
-        }
-      });
-    }
-
-    $("custEmail").addEventListener("focus", () => {
-      // auto-fill customer email from logged-in user (optional)
-      const user = auth.currentUser;
-      if (user && !$("custEmail").value) $("custEmail").value = user.email || "";
-    });
-
-  </script>
 </head>
 
 <body>
-  <div class="wrap">
+<div class="wrap">
 
-    <!-- Logo Display Card -->
-<div class="card logo-card" style="margin-bottom:14px; text-align:center; padding:15px;">
-
-  <div style="display:flex; justify-content:center; align-items:flex-start; gap:25px; flex-wrap:nowrap;">
-
-    <!-- Ahanitya Logo -->
-    <div style="display:flex; flex-direction:column; align-items:center; justify-content:flex-start;">
-      <img src="images/without BG.png"
-           alt="Ahanitya Pharma Life Science LLP"
-           style="height:100px;">
-      <p style="margin:8px 0 0 0; font-weight:600; color:#11799A; white-space:nowrap;">
-        Ahanitya Pharma Life Science LLP
-      </p>
-    </div>
-
-    <!-- Divider Line -->
-    <div style="width:1px; height:60px; background:#ccc;"></div>
-
-    <!-- Associate Sales Channel Partner Logo -->
-    <div style="display:flex; flex-direction:column; align-items:center; justify-content:flex-start;">
-      <img src="images/SBT.png"
-           alt="Associate Sales Channel Partner"
-           style="height:100px;">
-      <p style="margin:8px 0 0 0; font-weight:600; color:#444; white-space:nowrap;">
-        In association with Sales Channel Partner
-      </p>
-    </div>
-
-  </div>
+<div class="card">
+<h1>Ahanitya Pharma Life Science LLP</h1>
+<h2>End Consumer Order Form</h2>
+<div class="note">Attachment + Selected Medicines + Quantity are compulsory for email submission.</div>
 </div>
 
-
-    <div class="card" style="margin-bottom:14px">
-      <h1>Ahanitya Pharma Order Portal</h1>
-      <div class="row" style="justify-content:space-between;align-items:center">
-        <div class="muted">
-          Status: <span class="pill" id="who">Not logged in</span>
-        </div>
-        <button class="btn btn-ghost btn-toggle" id="btnTheme" type="button">Dark Mode</button>
-        <button class="btn btn-ghost" id="btnLogout">Logout</button>
-      </div>
-    </div>
-
-    <!-- AUTH -->
-    <div class="card" id="authCard">
-      <h2>Login / Create Account</h2>
-      <div class="grid grid-2">
-        <div>
-          <label>Email</label>
-          <input id="loginEmail" type="email" placeholder="yourname@email.com" />
-        </div>
-        <div>
-          <label>Password</label>
-          <input id="loginPass" type="password" placeholder="Min 6 characters" />
-        </div>
-      </div>
-      <div class="row" style="margin-top:12px">
-        <button class="btn btn-primary" id="btnLogin">Login</button>
-        <button class="btn btn-ghost" id="btnSignup">Create Account</button>
-      </div>
-      <div class="status" id="authStatus"></div>
-
-      <div class="note" style="margin-top:12px">
-      <!--  You must add Firebase config + EmailJS keys inside the code. -->
-      </div>
-    </div>
-
-    <!-- ORDER -->
-    <div class="card hide" id="orderCard">
-      <h2>Order Details</h2>
-
-      <div class="grid grid-2">
-        <div>
-          <label>Name</label>
-          <input id="custName" type="text" placeholder="Full Name" />
-        </div>
-        <div>
-          <label>Contact No</label>
-          <input id="custPhone" type="tel" placeholder="+91 XXXXX XXXXX" />
-        </div>
-        <div>
-          <label>Mail ID</label>
-          <input id="custEmail" type="email" placeholder="Customer email" />
-        </div>
-        <div>
-          <label>Business Type</label>
-          <select id="custBusiness">
-            <option value="" selected disabled>Select business type</option>
-            <option>Doctor</option>
-            <option>Wholeseller</option>
-            <option>Distributor</option>
-            <option>Stockist</option>
-            <option>Retailer</option>
-            <option>W/R</option>
-          </select>
-        </div>
-        <div>
-          <label>Referred By</label>
-          <select id="referredFlag">
-            <option value="No" selected>No</option>
-            <option value="Yes">Yes</option>
-          </select>
-        </div>
-        <div id="referrerFields" style="display:none;">
-          <label>Referrer Name</label>
-          <input id="referrerName" type="text" placeholder="Referrer full name" />
-        </div>
-        <div id="referrerFields2" style="display:none;">
-          <label>Referrer Designation</label>
-          <input id="referrerDesignation" type="text" placeholder="Doctor / MR / Distributor etc." />
-        </div>
-
-        <div>
-          <label>Address</label>
-          <input id="custAddress" type="text" placeholder="Full delivery address" />
-        </div>
-      </div>
-
-      <div id="medSection" style="margin-top:14px">
-        <h2 style="margin-bottom:10px">Select Medicines & Quantity</h2>
-
-      <div class="row" style="margin-bottom:14px">
-        <button class="btn btn-primary" id="btnSubmitTop">Submit Order (Email + WhatsApp)</button>
-        <button class="btn btn-danger" onclick="location.reload()">Reset</button>
-      </div>
-
-        <div class="medScroll">
-<table>
-          <thead>
-            <tr>
-              <th>Sr No</th>
-              <th>Brand Name</th>
-              <th>Strength</th>
-              <th class="right">Quantity</th>
-              <th class="right">Measurement</th>
-            </tr>
-          </thead>
-          <tbody id="medBody"></tbody>
-        </table>
-        <div class="muted" style="margin-top:8px">Set quantity 0 for items not required.</div>
-</div>
-      </div>
-
-
-      <!-- End Consumer Attachment (FormSubmit) -->
-      <form id="endConsumerForm"
-            action="https://formsubmit.co/infoahanityapharmalifescellp@gmail.com"
-            method="POST"
-            enctype="multipart/form-data"
-            style="margin-top:14px;">
-        <div id="endConsumerSection" style="padding:14px; border-radius:14px; border:1px dashed rgba(27,142,166,.45); background:rgba(27,142,166,.06);">
-          <h2 style="margin:0 0 10px; color:#0f172a;">End Consumer</h2>
-
-          <!-- FormSubmit controls -->
-          <input type="hidden" name="_captcha" value="false">
-          <input type="hidden" name="_subject" value="End Consumer Order - Ahanitya Order Portal">
-          <input type="hidden" name="_template" value="table">
-          <input type="hidden" name="_autoresponse" value="Thanks! We received your End Consumer order request. Team Ahanitya Pharma Life Science LLP will contact you shortly.">
-          <input type="hidden" name="Source" value="End Consumer Section (Independent Submit)">
-
-          <div class="grid grid-2">
-            <div>
-              <label>Name</label>
-              <input id="ecName" name="End Consumer Name" type="text" placeholder="End consumer full name" autocomplete="name" />
-            </div>
-            <div>
-              <label>Mobile No</label>
-              <input id="ecMobile" name="End Consumer Mobile" type="tel" placeholder="10-digit mobile number" inputmode="numeric" autocomplete="tel" />
-            </div>
-          </div>
-
-          <div style="margin-top:12px">
-            <label>Referred By</label>
-            <input id="ecReferredBy" name="Referred By" type="text" placeholder="Doctor / MR / Medical Store / Self" />
-          </div>
-
-          <div style="margin-top:12px">
-            <label>Attach a file (PDF, DOC, DOCX, JPG, PNG, CSV, XLS, XLSX)</label>
-            <input id="ecFile" name="Attachment"
-                   type="file"
-                   accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.csv,.xls,.xlsx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/jpeg,image/png,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
-            <div class="muted" style="margin-top:6px">
-              Attached file will be sent to <b>infoahanityapharmalifescellp@gmail.com</b> via FormSubmit.
-            </div>
-            <div class="muted" id="endConsumerStatus" style="margin-top:6px"></div>
-          </div>
-
-          <!-- This will be auto-filled from Select Medicines & Quantity -->
-          <textarea id="ecItems" name="Selected Medicines & Quantity" style="display:none"></textarea>
-
-          <div class="row" style="margin-top:12px">
-            <button class="btn btn-primary" type="submit" id="btnEndConsumerSend">Send End Consumer Order</button>
-            <button class="btn btn-ghost" type="reset">Reset End Consumer</button>
-          </div>
-
-          <div class="muted" style="margin-top:8px">
-            Note: This button is independent of the main “Submit Order”. It will send only End Consumer details + attachment + selected medicines/quantity.
-          </div>
-        </div>
-      </form>
-<div class="row" style="margin-top:14px">
-        <button class="btn btn-primary" id="btnSubmit">Submit Order (Email + WhatsApp)</button>
-        <button class="btn btn-danger" onclick="location.reload()">Reset</button>
-      </div>
-
-      <div class="status" id="orderStatus"></div>
-
-      <div class="note" style="margin-top:12px">
-        Orders will be emailed to <b>infoahanityapharmalifescellp@gmail.com</b> and also shared on WhatsApp to <b>+91 8487090212</b>.
-        <p><strong>*</strong>Orders placed on or before 13:00 hrs (1:00 PM) will be processed and delivered on the same day</p>
-        <p><strong>*</strong>We accept and deliver orders on Sundays and public holidays as well. Same-day delivery applies for orders placed before 13:00 hrs, subject to availability.</p>
-        <p><strong>*</strong>Emergency requirements may be accommodated on a priority basis (subject to availability).</p>
-        <p><strong>*</strong>Same-day delivery is subject to product stock availability. In case of stock shortage, the customer will be informed immediately.</p>
-        <p><strong>*</strong>Order changes or cancellations must be communicated before dispatch confirmation.</p>
-        
-      </div>
-    </div>
-  </div>
-
-<script>
-(function(){
-  const KEY = "ahanitya_theme";
-  const apply = (t) => {
-    document.body.setAttribute("data-theme", t);
-    const btn = document.getElementById("btnTheme");
-    if (btn) btn.textContent = (t === "dark") ? "Light Mode" : "Dark Mode";
-  };
-
-  // init
-  const saved = localStorage.getItem(KEY);
-  apply(saved === "dark" ? "dark" : "light");
-
-  // bind (button exists even when logged out)
-  document.addEventListener("click", (e) => {
-    if (e.target && e.target.id === "btnTheme") {
-      const cur = document.body.getAttribute("data-theme") === "dark" ? "dark" : "light";
-      const next = cur === "dark" ? "light" : "dark";
-      localStorage.setItem(KEY, next);
-      apply(next);
-    }
-  });
-})();
-</script>
-
-
-<script>
-(function(){
-  const ENDPOINT = "https://formsubmit.co/ajax/infoahanityapharmalifescellp@gmail.com";
-
-  
-
-// Collect selected medicines & quantities from the existing table (without touching EmailJS logic)
-function collectSelectedMedicinesText(){
-  try{
-    const qtyInputs = Array.from(document.querySelectorAll(".qty"));
-    const uomSelects = Array.from(document.querySelectorAll(".uom"));
-    const uomMap = new Map(uomSelects.map(sel => [sel.getAttribute("data-uom-med"), sel.value]));
-    const items = qtyInputs
-      .map(inp => {
-        const med = inp.getAttribute("data-med");
-        const qty = Number(inp.value || 0);
-        const uom = uomMap.get(med) || "Box";
-        return { med, qty, uom };
-      })
-      .filter(x => x.qty > 0);
-
-    if(!items.length) return "-";
-    return items.map((it, i) => `${i+1}. ${it.med} — Qty: ${it.qty} ${it.uom}`).join("
-");
-  }catch(e){
-    console.error("collectSelectedMedicinesText error:", e);
-    return "-";
-  }
-}
-async function sendEndConsumerAttachment(){
-    const fileInput = document.getElementById("ecFile");
-    if(!fileInput || !fileInput.files || fileInput.files.length === 0) return; // no attachment -> do nothing
-
-    const statusEl = document.getElementById("endConsumerStatus");
-    const name = (document.getElementById("ecName")?.value || "").trim();
-    const mobile = (document.getElementById("ecMobile")?.value || "").trim();
-    const referredBy = (document.getElementById("ecReferredBy")?.value || "").trim();
-
-    const fd = new FormData();
-    fd.append("End Consumer Name", name || "-");
-    fd.append("End Consumer Mobile", mobile || "-");
-    fd.append("Referred By", referredBy || "-");
-    fd.append("Medicines & Quantity", collectSelectedMedicinesText());
-
-    fd.append("attachment", fileInput.files[0]);
-
-    // FormSubmit options
-    fd.append("_subject", "APLSL Order Portal – End Consumer Attachment");
-    fd.append("_captcha", "false");
-    fd.append("_template", "table");
-
-    try{
-      if(statusEl) statusEl.textContent = "Sending attachment to email…";
-      const res = await fetch(ENDPOINT, { method:"POST", body: fd, headers: { "Accept":"application/json" } });
-      if(!res.ok) throw new Error("HTTP " + res.status);
-      if(statusEl) statusEl.textContent = "Attachment sent to email successfully.";
-    }catch(err){
-      console.error("FormSubmit error:", err);
-      if(statusEl) statusEl.textContent = "Attachment could not be sent (please try again).";
-    }
-  }
-
-  // Hook into existing submit buttons WITHOUT changing existing code.
-  function hook(){
-    const btns = [document.getElementById("btnSubmit"), document.getElementById("btnSubmitTop")].filter(Boolean);
-    btns.forEach(btn=>{
-      btn.addEventListener("click", () => { sendEndConsumerAttachment(); }, { capture: true });
-    });
-  }
-
-  if(document.readyState === "loading"){
-    document.addEventListener("DOMContentLoaded", hook);
-  } else {
-    hook();
-  }
-})();
-
-    // === End Consumer (Independent FormSubmit) ===
-    (function () {
-      const ecForm = document.getElementById("endConsumerForm");
-      const ecItems = document.getElementById("ecItems");
-      const ecStatus = document.getElementById("endConsumerStatus");
-
-      if (!ecForm) return;
-
-      function buildConsumerItemsText() {
-        // Reuse existing order item reader (selected medicines + qty + uom)
-        const items = (typeof getOrderItems === "function") ? getOrderItems() : [];
-        if (!items || items.length === 0) return "";
-        return items.map((x, i) => `${i + 1}. ${x.med} - ${x.qty} ${x.uom}`).join("\n");
-      }
-
-      ecForm.addEventListener("submit", function (e) {
-        const itemsText = buildConsumerItemsText();
-        if (!itemsText) {
-          e.preventDefault();
-          ecStatus.textContent = "Please select at least 1 medicine with quantity before sending End Consumer order.";
-          ecStatus.style.color = "#b91c1c";
-          return;
-        }
-        ecItems.value = itemsText;
-        ecStatus.textContent = "Sending End Consumer order…";
-        ecStatus.style.color = "#0f172a";
-      });
-    })();
-
-</script>
-
-
-<!-- ================= END CONSUMER INDEPENDENT FORM ================= -->
-<script>
-function submitEndConsumerForm() {
-
-  const name = document.getElementById("ec_name")?.value || "";
-  const mobile = document.getElementById("ec_mobile")?.value || "";
-  const referred = document.getElementById("ec_referred")?.value || "";
-
-  if(!name || !mobile){
-    alert("Please fill Name and Mobile No.");
-    return false;
-  }
-
-  // Collect selected medicine details from table
-  let medicinesText = "";
-  document.querySelectorAll("#medicineTable tbody tr").forEach((row, index) => {
-      const med = row.querySelector(".med-name")?.innerText || "";
-      const qty = row.querySelector(".med-qty")?.value || "";
-      if(qty && qty > 0){
-          medicinesText += (index+1) + ". " + med + " - Qty: " + qty + "\n";
-      }
-  });
-
-  if(!medicinesText){
-      alert("Please select at least one medicine.");
-      return false;
-  }
-
-  document.getElementById("ec_medicine_details").value = medicinesText;
-
-  document.getElementById("endConsumerForm").submit();
-}
-</script>
-
-<!-- ================= END CONSUMER FORM SECTION ================= -->
-<form id="endConsumerForm"
+<form id="ecForm"
       action="https://formsubmit.co/infoahanityapharmalifescellp@gmail.com"
       method="POST"
       enctype="multipart/form-data"
-      style="margin-top:20px;">
+      class="card">
 
-  <input type="hidden" name="_subject" value="End Consumer Order - Ahanitya Pharma">
-  <input type="hidden" name="_captcha" value="false">
+<input type="hidden" name="_captcha" value="false">
+<input type="hidden" name="_subject" value="APLSL End Consumer Order">
+<input type="hidden" name="_template" value="table">
 
-  <h3>End Consumer Details</h3>
+<h2>End Consumer Details</h2>
 
-  <input type="text" id="ec_name" name="End Consumer Name" placeholder="Name" required style="width:100%;margin-bottom:10px;padding:8px;">
-  <input type="text" id="ec_mobile" name="Mobile No" placeholder="Mobile No" required style="width:100%;margin-bottom:10px;padding:8px;">
-  <input type="text" id="ec_referred" name="Referred By" placeholder="Referred By" style="width:100%;margin-bottom:10px;padding:8px;">
+<div class="grid grid-2">
+  <div>
+    <label>Name <span class="req">*</span></label>
+    <input type="text" name="Consumer Name" id="custName" required>
+  </div>
+  <div>
+    <label>Mobile No <span class="req">*</span></label>
+    <input type="tel" name="Mobile No" id="custMobile" required>
+  </div>
+</div>
 
-  <label><strong>Attach File (PDF, DOC, DOCX, JPG, PNG, CSV, XLS, XLSX)</strong></label>
-  <input type="file" name="attachment" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.csv,.xls,.xlsx"
-         style="width:100%;margin-bottom:10px;padding:6px;" required>
+<div style="margin-top:14px">
+<label>Attach Prescription / Document <span class="req">*</span></label>
+<input type="file" name="Attachment" id="custFile"
+accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xls,.xlsx,.csv"
+required>
+</div>
 
-  <textarea id="ec_medicine_details" name="Selected Medicines" style="display:none;"></textarea>
+<div class="medBox">
+<h2>Select Medicines & Quantity <span class="req">*</span></h2>
 
-  <button type="button" onclick="submitEndConsumerForm()"
-          style="background:#14532d;color:white;padding:10px 15px;border:none;border-radius:4px;">
-          Submit End Consumer Order
-  </button>
+<div class="medScroll">
+<table>
+<thead>
+<tr>
+<th>Sr</th>
+<th>Brand</th>
+<th>Strength</th>
+<th class="right">Qty</th>
+<th class="right">Unit</th>
+</tr>
+</thead>
+<tbody id="medBody"></tbody>
+</table>
+</div>
+</div>
+
+<textarea id="hiddenItems" name="Selected Medicines" style="display:none"></textarea>
+
+<div class="row" style="margin-top:14px">
+<button type="submit" class="btn btn-primary">Submit to Email</button>
+<button type="button" class="btn btn-danger" onclick="sendWhatsApp()">Send to WhatsApp</button>
+</div>
+
+<div id="status" class="status"></div>
 
 </form>
-<!-- ================= END END CONSUMER SECTION ================= -->
 
+</div>
 
 <script>
-document.addEventListener("DOMContentLoaded", function(){
-  const ecForm = document.getElementById("endConsumerForm");
-  if(ecForm){
-    ecForm.addEventListener("submit", function(e){
-      const fileInput = ecForm.querySelector("input[type='file']");
-      if(!fileInput || !fileInput.files || fileInput.files.length === 0){
-        e.preventDefault();
-        alert("Attachment is mandatory. Please upload prescription / required document.");
-        return false;
-      }
-    });
-  }
+const MEDICINES=[
+{brand:"AZIN-500",strength:"Azithromycin 500 mg"},
+{brand:"ASP",strength:"Aceclofenac + Paracetamol + Serratiopeptidase"},
+{brand:"A-SUNAC",strength:"Aceclofenac + Paracetamol"},
+{brand:"PANTO-DSR",strength:"Pantoprazole + Domperidone"},
+{brand:"LE-MONT",strength:"Montelukast + Levocetirizine"}
+];
+
+function renderRows(){
+const tbody=document.getElementById("medBody");
+MEDICINES.forEach((m,i)=>{
+const tr=document.createElement("tr");
+tr.innerHTML=`
+<td>${i+1}</td>
+<td>${m.brand}</td>
+<td>${m.strength}</td>
+<td class="right"><input type="number" min="0" value="0" class="qty"></td>
+<td class="right">
+<select class="uom">
+<option>Box</option>
+<option>Strip</option>
+<option>Each</option>
+</select>
+</td>`;
+tbody.appendChild(tr);
 });
+}
+
+function collectItems(){
+const rows=document.querySelectorAll("#medBody tr");
+let text="";
+rows.forEach((row,i)=>{
+const qty=row.querySelector(".qty").value;
+if(qty>0){
+const brand=row.cells[1].innerText;
+const strength=row.cells[2].innerText;
+const unit=row.querySelector(".uom").value;
+text+=`${brand} (${strength}) - ${qty} ${unit}\n`;
+}
+});
+return text;
+}
+
+document.getElementById("ecForm").addEventListener("submit",function(e){
+const items=collectItems();
+if(!items){
+e.preventDefault();
+document.getElementById("status").textContent="Please select at least one medicine with quantity.";
+document.getElementById("status").className="status err";
+return;
+}
+document.getElementById("hiddenItems").value=items;
+document.getElementById("status").textContent="Sending to email...";
+document.getElementById("status").className="status ok";
+});
+
+function sendWhatsApp(){
+const items=collectItems();
+if(!items){
+alert("Select at least one medicine with quantity.");
+return;
+}
+const name=document.getElementById("custName").value;
+const mobile=document.getElementById("custMobile").value;
+if(!name||!mobile){
+alert("Fill Name and Mobile No first.");
+return;
+}
+const message=`APLSL End Consumer Order%0AName: ${name}%0AMobile: ${mobile}%0A%0AMedicines:%0A${encodeURIComponent(items)}`;
+window.open(`https://wa.me/918487090212?text=${message}`,"_blank");
+}
+
+renderRows();
 </script>
 
 </body>
