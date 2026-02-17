@@ -93,9 +93,12 @@ input::placeholder{
 .medScroll{
   height:420px;
   overflow:auto;
+  overflow-x:auto;
+  overflow-y:auto;
+  overscroll-behavior: contain;
   border-radius:12px;
   border:1px solid #e5e7eb;
-  background:white;
+  background: rgba(255,255,255,0.82);
 }
 
 table{
@@ -111,7 +114,7 @@ th,td{
 }
 
 th{
-  background:#f1f5f9;
+  background: rgba(241,245,249,0.92);
   position:sticky;
   top:0;
 }
@@ -190,7 +193,7 @@ th{
   content:"";
   position:absolute;
   inset:0;
-  background: rgba(255,255,255,0.86); /* overlay for readability */
+  background: rgba(255,255,255,0.62); /* overlay (more image visibility) */
   z-index:0;
 }
 #medicineSection > *{
