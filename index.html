@@ -15,53 +15,81 @@
   --danger:#dc2626;
   --ok:#065f46;
 }
+
 body{
   margin:0;
   font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
   background:linear-gradient(180deg,#f7fbff,#eef5ff);
   color:var(--text);
 }
+
 .wrap{max-width:1000px;margin:auto;padding:24px}
+
 .card{
   background:#fff;
   border:1px solid #e5e7eb;
   border-radius:16px;
-  padding:18px;
+  padding:20px;
   box-shadow:0 6px 20px rgba(0,0,0,.08);
-  margin-bottom:14px;
+  margin-bottom:16px;
 }
+
 h1{margin:0 0 10px}
-h2{margin:0 0 12px}
-label{display:block;font-size:13px;margin-bottom:6px;color:var(--muted)}
-input,select{
-  width:100%;
-  padding:10px 12px;
-  border-radius:10px;
-  border:1px solid #e5e7eb;
-  background:#fff;
+h2{margin:0 0 14px}
+
+label{
+  display:block;
+  font-size:13px;
+  margin-bottom:6px;
+  color:var(--muted);
+  font-weight:600;
 }
-.grid{display:grid;gap:14px}
+
+/* 🔹 Alignment improvement for Name & Mobile placeholders */
+input[type="text"],
+input[type="tel"],
+input[type="email"]{
+  width:100%;
+  padding:12px 14px;
+  border-radius:10px;
+  border:1px solid #d1d5db;
+  font-size:14px;
+  box-sizing:border-box;
+}
+
+input::placeholder{
+  color:#9ca3af;
+  font-size:13px;
+}
+
+.grid{display:grid;gap:16px}
 @media (min-width:860px){ .grid-2{grid-template-columns:1fr 1fr} }
-.row{display:flex;gap:10px;flex-wrap:wrap}
+
+.row{display:flex;gap:12px;flex-wrap:wrap}
+
 .btn{
   border:none;
   border-radius:12px;
-  padding:12px 16px;
+  padding:12px 18px;
   font-weight:700;
   cursor:pointer;
 }
+
 .btn-primary{background:var(--brand);color:white}
 .btn-danger{background:var(--danger);color:white}
-.status{margin-top:10px;font-size:14px}
+
+.status{margin-top:12px;font-size:14px}
 .status.ok{color:var(--ok)}
 .status.err{color:var(--danger)}
+
 .medBox{
-  margin-top:14px;
+  margin-top:18px;
   border:1px solid #e5e7eb;
   border-radius:14px;
-  padding:12px;
+  padding:14px;
   background:#fbfdff;
 }
+
 .medScroll{
   height:420px;
   overflow:auto;
@@ -69,30 +97,49 @@ input,select{
   border:1px solid #e5e7eb;
   background:white;
 }
+
 table{
   width:max-content;
   min-width:1000px;
   border-collapse:collapse;
 }
+
 th,td{
   padding:10px;
   border-bottom:1px solid #e5e7eb;
   font-size:13px;
 }
+
 th{
   background:#f1f5f9;
   position:sticky;
   top:0;
 }
+
 .right{text-align:right}
 .qty{width:90px}
 .uom{width:110px}
+
 .req{color:var(--danger);font-weight:bold}
+
 .note{
   margin-top:10px;
   font-size:12px;
   color:var(--muted);
 }
+
+.na-badge{
+  display:inline-block;
+  background:#e6f6fa;
+  color:#1b8ea6;
+  border:1px solid #1b8ea6;
+  padding:4px 10px;
+  border-radius:999px;
+  font-weight:800;
+  font-size:12px;
+  letter-spacing:.2px;
+}
+
 </style>
 </head>
 
@@ -120,15 +167,37 @@ th{
 <div class="grid grid-2">
   <div>
     <label>Name <span class="req">*</span></label>
-    <input type="text" name="Consumer Name" id="custName" required>
+    <input type="text" name="Consumer Name" id="custName" placeholder="Enter Full Name" required>
   </div>
   <div>
     <label>Mobile No <span class="req">*</span></label>
-    <input type="tel" name="Mobile No" id="custMobile" required>
+    <input type="tel" name="Mobile No" id="custMobile" placeholder="Enter 10-digit Mobile No" required>
   </div>
 </div>
 
-<div style="margin-top:14px">
+<div class="grid grid-2" style="margin-top:14px;">
+  <div>
+    <label>End Consumer Mail ID</label>
+    <input type="email" name="Consumer Email" placeholder="Enter Email (if available)">
+  </div>
+  <div>
+    <label>Referred Doctor Name</label>
+    <input type="text" name="Referred Doctor Name" placeholder="Doctor Name">
+  </div>
+</div>
+
+<div class="grid grid-2" style="margin-top:14px;">
+  <div>
+    <label>Doctor Mobile No</label>
+    <input type="tel" name="Doctor Mobile No" placeholder="Doctor Mobile Number">
+  </div>
+  <div>
+    <label>Doctor Mail ID</label>
+    <input type="email" name="Doctor Mail ID" placeholder="Doctor Email (if available)">
+  </div>
+</div>
+
+<div style="margin-top:16px">
 <label>Attach Prescription / Document <span class="req">*</span></label>
 <input type="file" name="Attachment" id="custFile"
 accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xls,.xlsx,.csv"
@@ -156,7 +225,7 @@ required>
 
 <textarea id="hiddenItems" name="Selected Medicines" style="display:none"></textarea>
 
-<div class="row" style="margin-top:14px">
+<div class="row" style="margin-top:18px">
 <button type="submit" class="btn btn-primary">Submit to Email</button>
 <button type="button" class="btn btn-danger" onclick="sendWhatsApp()">Send to WhatsApp</button>
 </div>
@@ -164,49 +233,67 @@ required>
 <div id="status" class="status"></div>
 
 </form>
-
 </div>
 
 <script>
 const MEDICINES=[
-{brand:"AZIN-500",strength:"Azithromycin 500 mg"},
-{brand:"ASP",strength:"Aceclofenac + Paracetamol + Serratiopeptidase"},
-{brand:"A-SUNAC",strength:"Aceclofenac + Paracetamol"},
-{brand:"PANTO-DSR",strength:"Pantoprazole + Domperidone"},
-{brand:"LE-MONT",strength:"Montelukast + Levocetirizine"}
+  {brand:"AZIN-500", strength:"Azithromycin 500 mg", available:true},
+  {brand:"ASP", strength:"Aceclofenac + Paracetamol + Serratiopeptidase", available:true},
+  {brand:"A-SUNAC", strength:"Aceclofenac + Paracetamol", available:true},
+  {brand:"PANTO-DSR", strength:"Pantoprazole + Domperidone", available:true},
+  {brand:"LE-MONT", strength:"Montelukast + Levocetirizine", available:true},
+  {brand:"APLSL-DiaMet", strength:"Glimepiride 2 mg + Metformin HCl (ER)", available:false},
+  {brand:"APLSL-Lulizid", strength:"Luliconazole 1%", available:false}
 ];
 
 function renderRows(){
-const tbody=document.getElementById("medBody");
-MEDICINES.forEach((m,i)=>{
-const tr=document.createElement("tr");
-tr.innerHTML=`
-<td>${i+1}</td>
-<td>${m.brand}</td>
-<td>${m.strength}</td>
-<td class="right"><input type="number" min="0" value="0" class="qty"></td>
-<td class="right">
-<select class="uom">
-<option>Box</option>
-<option>Strip</option>
-<option>Each</option>
-</select>
-</td>`;
-tbody.appendChild(tr);
-});
+  const tbody=document.getElementById("medBody");
+  tbody.innerHTML = "";
+  MEDICINES.forEach((m,i)=>{
+    const tr=document.createElement("tr");
+
+    const qtyCell = (m.available === false)
+      ? `<span class="na-badge">Updating Soon 🚀</span>`
+      : `<input type="number" min="0" value="0" class="qty">`;
+
+    const unitCell = (m.available === false)
+      ? `<span class="na-badge">—</span>`
+      : `<select class="uom">
+           <option>Box</option>
+           <option>Strip</option>
+           <option>Bottle</option>
+           <option>Each</option>
+         </select>`;
+
+    tr.innerHTML=`
+      <td>${i+1}</td>
+      <td>${m.brand}</td>
+      <td>${m.strength}</td>
+      <td class="right">${qtyCell}</td>
+      <td class="right">${unitCell}</td>`;
+
+    tbody.appendChild(tr);
+  });
 }
 
+
 function collectItems(){
-const rows=document.querySelectorAll("#medBody tr");
-let text="";
-rows.forEach((row,i)=>{
-const qty=row.querySelector(".qty").value;
-if(qty>0){
-const brand=row.cells[1].innerText;
-const strength=row.cells[2].innerText;
-const unit=row.querySelector(".uom").value;
-text+=`${brand} (${strength}) - ${qty} ${unit}\n`;
+  const rows=document.querySelectorAll("#medBody tr");
+  let text="";
+  rows.forEach((row)=>{
+    const qtyEl = row.querySelector(".qty");
+    if(!qtyEl) return; // unavailable item (Updating Soon)
+    const qty = Number(qtyEl.value || 0);
+    if(qty>0){
+      const brand=row.cells[1].innerText;
+      const strength=row.cells[2].innerText;
+      const unit=row.querySelector(".uom") ? row.querySelector(".uom").value : "";
+      text+=`${brand} (${strength}) - ${qty} ${unit}\n`;
+    }
+  });
+  return text;
 }
+
 });
 return text;
 }
