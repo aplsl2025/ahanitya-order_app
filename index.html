@@ -441,6 +441,7 @@ function sendBoth(){
     alert("Currently service is available in Ahmedabad only.");
     return;
   }
+
   const items = collectItems();
   if(!items){
     alert("Select at least one medicine with quantity.");
@@ -455,22 +456,51 @@ function sendBoth(){
     return;
   }
 
+  // Collect ALL order details from the form (as shown in your form)
+  const areaEl = document.querySelector('input[name="Area / Locality"]');
+  const mapEl  = document.querySelector('input[name="Google Map Location Link"]');
+  const emailEl = document.querySelector('input[name="Consumer Email"]');
+  const docNameEl = document.querySelector('input[name="Referred Doctor Name"]');
+  const docMobEl  = document.querySelector('input[name="Doctor Mobile No"]');
+  const docMailEl = document.querySelector('input[name="Doctor Mail ID"]');
+
+  const area = areaEl ? areaEl.value.trim() : "";
+  const mapLink = mapEl ? mapEl.value.trim() : "";
+  const consumerEmail = emailEl ? emailEl.value.trim() : "";
+  const docName = docNameEl ? docNameEl.value.trim() : "";
+  const docMob  = docMobEl ? docMobEl.value.trim() : "";
+  const docMail = docMailEl ? docMailEl.value.trim() : "";
+
   // Set hidden textarea for email
   document.getElementById("hiddenItems").value = items;
 
-  // Submit Email
+  // Submit Email (FormSubmit)
   document.getElementById("ecForm").submit();
 
-  // WhatsApp message
-  const message =
-    `APLSL End Consumer Order%0A`+
-    `Name: ${encodeURIComponent(name)}%0A`+
-    `Mobile: ${encodeURIComponent(mobile)}%0A%0A`+
-    `Medicines:%0A${encodeURIComponent(items)}`;
+  // WhatsApp message — include all order details + map link
+  const lines = [];
+  lines.push("SBT–APLSL Patient Care Order");
+  lines.push("");
+  lines.push("Order Details:");
+  lines.push(`Name: ${name}`);
+  lines.push(`Mobile: ${mobile}`);
+  if(consumerEmail) lines.push(`Email: ${consumerEmail}`);
+  lines.push(`City: ${cityEl ? cityEl.value.trim() : ""}`);
+  if(area) lines.push(`Area/Locality: ${area}`);
+  if(mapLink) lines.push(`Google Map Link: ${mapLink}`);
+  lines.push("");
+  lines.push("Doctor Details:");
+  if(docName) lines.push(`Doctor Name: ${docName}`);
+  if(docMob)  lines.push(`Doctor Mobile: ${docMob}`);
+  if(docMail) lines.push(`Doctor Email: ${docMail}`);
+  lines.push("");
+  lines.push("Medicines:");
+  lines.push(items);
+
+  const message = encodeURIComponent(lines.join("\n"));
 
   window.open(`https://wa.me/918487090212?text=${message}`,"_blank");
 }
-
 
 document.addEventListener("DOMContentLoaded", renderRows);
 </script>
