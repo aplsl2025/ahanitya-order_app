@@ -435,6 +435,10 @@ document.getElementById("ecForm").addEventListener("submit",function(e){
 });
 
 function sendBoth(){
+  const form = document.getElementById("ecForm");
+  const statusEl = document.getElementById("status");
+
+  // Ahmedabad validation (unchanged)
   const cityEl = document.getElementById("custCity");
   const city = (cityEl && cityEl.value ? cityEl.value.trim().toLowerCase() : "");
   if(city !== "ahmedabad"){
@@ -442,63 +446,79 @@ function sendBoth(){
     return;
   }
 
+  // Medicines validation
   const items = collectItems();
   if(!items){
-    alert("Select at least one medicine with quantity.");
+    alert("Please select at least one medicine with quantity.");
     return;
   }
+  document.getElementById("hiddenItems").value = items;
 
+  // Basic required validation
   const name = document.getElementById("custName").value.trim();
   const mobile = document.getElementById("custMobile").value.trim();
-
   if(!name || !mobile){
     alert("Fill Name and Mobile No first.");
     return;
   }
 
-  // Collect ALL order details from the form (as shown in your form)
-  const areaEl = document.querySelector('input[name="Area / Locality"]');
-  const mapEl  = document.querySelector('input[name="Google Map Location Link"]');
-  const emailEl = document.querySelector('input[name="Consumer Email"]');
-  const docNameEl = document.querySelector('input[name="Referred Doctor Name"]');
-  const docMobEl  = document.querySelector('input[name="Doctor Mobile No"]');
-  const docMailEl = document.querySelector('input[name="Doctor Mail ID"]');
+  // Attachment required for email (as per your note)
+  const fileEl = document.getElementById("custFile");
+  if(fileEl && fileEl.required && (!fileEl.files || !fileEl.files.length)){
+    alert("Please attach prescription/document before submitting.");
+    return;
+  }
 
-  const area = areaEl ? areaEl.value.trim() : "";
-  const mapLink = mapEl ? mapEl.value.trim() : "";
-  const consumerEmail = emailEl ? emailEl.value.trim() : "";
-  const docName = docNameEl ? docNameEl.value.trim() : "";
-  const docMob  = docMobEl ? docMobEl.value.trim() : "";
-  const docMail = docMailEl ? docMailEl.value.trim() : "";
+  // Build WhatsApp message from ALL form fields (similar to email/table)
+  const fd = new FormData(form);
 
-  // Set hidden textarea for email
-  document.getElementById("hiddenItems").value = items;
+  // Remove internal FormSubmit keys from message
+  const skipKeys = new Set(["_captcha","_subject","_template","_cc","Selected Medicines"]);
+  // We'll add Selected Medicines separately (clean formatting)
+  // Attachment: cannot be sent via WhatsApp, but we include file name
+  const attachmentName = (fileEl && fileEl.files && fileEl.files[0]) ? fileEl.files[0].name : "";
 
-  // Submit Email (FormSubmit)
-  document.getElementById("ecForm").submit();
-
-  // WhatsApp message — include all order details + map link
   const lines = [];
-  lines.push("SBT–APLSL Patient Care Order");
+  lines.push("APLSL End Consumer Order");
+  lines.push(`Date: ${new Date().toLocaleString()}`);
   lines.push("");
+
+  // Order details fields in a neat order (match your form labels)
+  const orderedFields = [
+    "Consumer Name",
+    "Mobile No",
+    "Consumer Email",
+    "City",
+    "Area / Locality",
+    "Google Map Location Link",
+    "Referred Doctor Name",
+    "Doctor Mobile No",
+    "Doctor Mail ID"
+  ];
+
   lines.push("Order Details:");
-  lines.push(`Name: ${name}`);
-  lines.push(`Mobile: ${mobile}`);
-  if(consumerEmail) lines.push(`Email: ${consumerEmail}`);
-  lines.push(`City: ${cityEl ? cityEl.value.trim() : ""}`);
-  if(area) lines.push(`Area/Locality: ${area}`);
-  if(mapLink) lines.push(`Google Map Link: ${mapLink}`);
-  lines.push("");
-  lines.push("Doctor Details:");
-  if(docName) lines.push(`Doctor Name: ${docName}`);
-  if(docMob)  lines.push(`Doctor Mobile: ${docMob}`);
-  if(docMail) lines.push(`Doctor Email: ${docMail}`);
+  orderedFields.forEach((k)=>{
+    if(skipKeys.has(k)) return;
+    const v = (fd.get(k) || "").toString().trim();
+    lines.push(`${k}: ${v ? v : "-"}`);
+  });
+
+  if(attachmentName){
+    lines.push(`Attachment (sent on email): ${attachmentName}`);
+  }else{
+    lines.push("Attachment (sent on email): -");
+  }
+
   lines.push("");
   lines.push("Medicines:");
   lines.push(items);
 
   const message = encodeURIComponent(lines.join("\n"));
 
+  // Submit Email first
+  form.submit();
+
+  // Then open WhatsApp
   window.open(`https://wa.me/918487090212?text=${message}`,"_blank");
 }
 
