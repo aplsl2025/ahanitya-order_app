@@ -103,7 +103,7 @@ input::placeholder{
 
 table{
   width:max-content;
-  min-width:1000px;
+  min-width:1150px;
   border-collapse:collapse;
 }
 
@@ -199,6 +199,23 @@ th{
 #medicineSection > *{
   position:relative;
   z-index:1;
+}
+
+
+/* ===== Medicine search ===== */
+.medSearchRow{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  margin:10px 0 12px;
+  flex-wrap:wrap;
+}
+.medSearchRow input[type="text"]{
+  flex:1 1 320px;
+}
+.smallHint{
+  font-size:12px;
+  color:var(--muted);
 }
 
 </style>
@@ -320,12 +337,18 @@ required>
 <div class="medBox" id="medicineSection">
 <h2>Select Medicines & Quantity <span class="req">*</span></h2>
 
+<div class="medSearchRow">
+  <input type="text" id="medSearch" placeholder="Search medicine by Brand or Company (e.g., AZIN or Ahanitya)">
+  <span class="smallHint">Type to filter</span>
+</div>
+
 <div class="medScroll">
 <table>
 <thead>
 <tr>
 <th>Sr</th>
 <th>Brand</th>
+<th>Company</th>
 <th>Strength</th>
 <th class="right">Qty</th>
 <th class="right">Unit</th>
@@ -351,20 +374,31 @@ required>
 
 <script>
 const MEDICINES=[
-  {brand:"AZIN-500", strength:"Azithromycin 500 mg", available:true},
-  {brand:"ASP", strength:"Aceclofenac + Paracetamol + Serratiopeptidase", available:true},
-  {brand:"A-SUNAC", strength:"Aceclofenac + Paracetamol", available:true},
-  {brand:"PANTO-DSR", strength:"Pantoprazole + Domperidone", available:true},
-  {brand:"APLSL-DiaMet", strength:"Glimepiride 2 mg + Metformin HCl (ER)", available:false},
-  {brand:"LE-MONT", strength:"Montelukast + Levocetirizine", available:true}
+  {brand:"AZIN-500", company:"Ahanitya Pharma Life Science LLP", strength:"Azithromycin 500 mg", available:true},
+  {brand:"ASP", company:"Ahanitya Pharma Life Science LLP", strength:"Aceclofenac + Paracetamol + Serratiopeptidase", available:true},
+  {brand:"A-SUNAC", company:"Ahanitya Pharma Life Science LLP", strength:"Aceclofenac + Paracetamol", available:true},
+  {brand:"PANTO-DSR", company:"Ahanitya Pharma Life Science LLP", strength:"Pantoprazole + Domperidone", available:true},
+  {brand:"APLSL-DiaMet", company:"Sky Biotech", strength:"Glimepiride 2 mg + Metformin HCl (ER)", available:false},
+  {brand:"LE-MONT", company:"Ahanitya Pharma Life Science LLP", strength:"Montelukast + Levocetirizine", available:true}
 ];
 
 function renderRows(){
   const tbody = document.getElementById("medBody");
   if(!tbody) return;
+
+  const q = (document.getElementById("medSearch") && document.getElementById("medSearch").value ? document.getElementById("medSearch").value : "")
+            .trim().toLowerCase();
+
   tbody.innerHTML = "";
 
-  MEDICINES.forEach((m, i) => {
+  const filtered = MEDICINES.filter(m => {
+    if(!q) return true;
+    const brand = (m.brand || "").toLowerCase();
+    const company = (m.company || "").toLowerCase();
+    return brand.includes(q) || company.includes(q);
+  });
+
+  filtered.forEach((m, i) => {
     const tr = document.createElement("tr");
 
     const qtyCell = (m.available === false)
@@ -383,6 +417,7 @@ function renderRows(){
     tr.innerHTML = `
       <td>${i + 1}</td>
       <td>${m.brand}</td>
+      <td>${m.company || ""}</td>
       <td>${m.strength}</td>
       <td class="right">${qtyCell}</td>
       <td class="right">${unitCell}</td>
@@ -403,10 +438,10 @@ function collectItems(){
     const qty = Number(qtyEl.value || 0);
     if(qty > 0){
       const brand = row.cells[1].innerText.trim();
-      const strength = row.cells[2].innerText.trim();
+      const company = row.cells[2].innerText.trim();
+      const strength = row.cells[3].innerText.trim();
       const unit = row.querySelector(".uom") ? row.querySelector(".uom").value : "";
-      text += `${brand} (${strength}) - ${qty} ${unit}
-`;
+      text += `${brand} - ${company} (${strength}) - ${qty} ${unit}\n`;
     }
   });
 
@@ -522,7 +557,11 @@ function sendBoth(){
   window.open(`https://wa.me/918487090212?text=${message}`,"_blank");
 }
 
-document.addEventListener("DOMContentLoaded", renderRows);
+document.addEventListener("DOMContentLoaded", () => {
+  renderRows();
+  const s = document.getElementById("medSearch");
+  if(s){ s.addEventListener("input", renderRows); }
+});
 </script>
 
 <p>© 2026 Ahanitya Pharma Life Science LLP. All Rights Reserved.  
