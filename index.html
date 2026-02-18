@@ -103,7 +103,7 @@ input::placeholder{
 
 table{
   width:max-content;
-  min-width:1150px;
+  min-width:1250px;
   border-collapse:collapse;
 }
 
@@ -375,18 +375,19 @@ required>
 
 <script>
 const MEDICINES=[
-  {Sr:1, brand:"AZIN-500", company:"Ahanitya Pharma Life Science LLP", ProductType:"TAB", strength:"Azithromycin 500 mg", available:true},
-  {Sr:2, brand:"ASP", company:"Ahanitya Pharma Life Science LLP", ProductType:"TAB", strength:"Aceclofenac + Paracetamol + Serratiopeptidase", available:true},
-  {Sr:3, brand:"A-SUNAC", company:"Ahanitya Pharma Life Science LLP", ProductType:"TAB", strength:"Aceclofenac + Paracetamol", available:true},
-  {Sr:4, brand:"APLSL-DiaMet", company:"Ahanitya Pharma Life Science LLP", ProductType:"TAB", strength:"Glimepiride 2 mg + Metformin HCl (ER)", available:false},
-  {Sr:5, brand:"APLSL-Lulizid", company:"Ahanitya Pharma Life Science LLP", ProductType:"TAB", strength:"Luliconazole 1%", available:false},
-  {Sr:6, brand:"Ahanitya-Ketozin", company:"Ahanitya Pharma Life Science LLP", ProductType:"SHAMPOO", strength:"Ketoconazole 2%", available:false},
-  {Sr:7, brand:"APLSL-Cutiderm", company:"Ahanitya Pharma Life Science LLP", ProductType:"CREAM", strength:"Itraconazole 1% + Ofloxacin 0.75% + Ornidazole 2% + Clobetasol 0.05%", available:false},
-  {Sr:8, brand:"Ahanitya-AmbroLev", company:"Ahanitya Pharma Life Science LLP", ProductType:"TAB", strength:"Ambroxol 60mg + Levocetirizine 2.5mg + Paracetamol 500mg + Phenylephrine 5mg", available:false},
-  {Sr:9, brand:"PANTO-DSR", company:"Ahanitya Pharma Life Science LLP", ProductType:"CAP", strength:"Pantoprazole + Domperidone", available:true},
-  {Sr:10, brand:"LE-MONT", company:"Ahanitya Pharma Life Science LLP", ProductType:"TAB", strength:"Montelukast + Levocetirizine", available:true},
-];
+    {Sr:1,   brand:"AZIN-500", company:"Ahanitya Pharma Life Science LLP", productType:"TAB", strength:"Azithromycin 500 mg", available:true},
+  {Sr:2,   brand:"ASP", company:"Ahanitya Pharma Life Science LLP", productType:"TAB", strength:"Aceclofenac + Paracetamol + Serratiopeptidase", available:true},
+  {Sr:3,   brand:"A-SUNAC", company:"Ahanitya Pharma Life Science LLP", productType:"TAB", strength:"Aceclofenac + Paracetamol", available:true},
+  {Sr:4,   brand:"APLSL-DiaMet", company:"Ahanitya Pharma Life Science LLP", productType:"TAB", strength:"Glimepiride 2 mg + Metformin HCl (ER)", available:false},
+  {Sr:5,   brand:"APLSL-Lulizid", company:"Ahanitya Pharma Life Science LLP", productType:"TAB", strength:"Luliconazole 1%",  available:false},
+  {Sr:6,   brand:"Ahanitya-Ketozin", company:"Ahanitya Pharma Life Science LLP", strength:"Ketoconazole 2%", productType:"SHAMPOO", available:false},
+  {Sr:7,   brand:"APLSL-Cutiderm", company:"Ahanitya Pharma Life Science LLP", productType:"TAB", strength:"Itraconazole 1% + Ofloxacin 0.75% + Ornidazole 2% + Clobetasol 0.05%", available:false},
+  {Sr:8,   brand:"Ahanitya-AmbroLev", company:"Ahanitya Pharma Life Science LLP", productType:"TAB", strength:"Ambroxol 60mg + Levocetirizine 2.5mg + Paracetamol 500mg + Phenylephrine 5mg", available:false},
+  {Sr:9,   brand:"PANTO-DSR", company:"Ahanitya Pharma Life Science LLP", productType:"TAB", strength:"Pantoprazole + Domperidone",  available:true},
+  {Sr:10,  brand:"LE-MONT", company:"Ahanitya Pharma Life Science LLP", productType:"TAB", strength:"Montelukast + Levocetirizine",  available:true},
 
+   
+];
 
 // ✅ Persist selections even after filtering/re-render
 // Keyed by brand (unique). Stores qty + unit.
@@ -414,7 +415,8 @@ function renderRows(){
     const brand = (m.brand || "").toLowerCase();
     const company = (m.company || "").toLowerCase();
     const strength = (m.strength || "").toLowerCase();
-    return brand.includes(q) || company.includes(q) || strength.includes(q);
+    const ptype = (m.productType || "").toLowerCase();
+    return brand.includes(q) || company.includes(q) || strength.includes(q) || ptype.includes(q);
   });
 
   filtered.forEach((m) => {
@@ -441,6 +443,7 @@ function renderRows(){
       <td>${sr}</td>
       <td>${m.brand}</td>
       <td>${m.company || ""}</td>
+      <td>${m.productType || ""}</td>
       <td>${m.strength}</td>
       <td class="right">${qtyCellHTML}</td>
       <td class="right">${unitCellHTML}</td>
@@ -485,7 +488,9 @@ function collectItems(){
     const company = (m.company || "").trim();
     const strength = (m.strength || "").trim();
     const unit = (st.unit || "Box").trim();
-    text += `${brand} - ${company} (${strength}) - ${st.qty} ${unit}\n`;
+    const ptype = (m.productType || "").trim();
+    text += `${brand} - ${company}${ptype ? " ["+ptype+"]" : ""} (${strength}) - ${st.qty} ${unit}
+`;
   });
   return text.trim();
 }
