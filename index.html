@@ -363,20 +363,19 @@ required>
 </table>
 </div>
 </div>
-
+  
+<div class="customMessageBox">
+  <label for="customMessage"> Medicines Not Listed? Share Here </label>
+  <textarea id="customMessage" name="custom_message" 
+            placeholder="Enter any special instructions, notes, or message here..."
+            rows="4"></textarea>
+</div>
 <textarea id="hiddenItems" name="Selected Medicines" style="display:none"></textarea>
 
 <div class="row" style="margin-top:18px">
   <button type="button" class="btn btn-primary" onclick="sendBoth()">
     Submit Order
   </button>
-</div>
-
-<div class="customMessageBox">
-  <label for="customMessage"> Medicines Not Listed? Share Here </label>
-  <textarea id="customMessage" name="custom_message" 
-            placeholder="Enter any special instructions, notes, or message here..."
-            rows="4"></textarea>
 </div>
 
 <div id="status" class="status"></div>
